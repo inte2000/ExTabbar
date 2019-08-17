@@ -4,6 +4,7 @@
 #include "resource.h"
 #include "SimpleExt.h"
 #include "SimpleShlExt.h"
+#include "HookLibManager.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CSimpleShlExt
@@ -129,6 +130,131 @@ void TestGetShellObject()
     }
 }
 
+BOOL IsExplorerAppWindow(CComPtr<IWebBrowserApp>& pwba)
+{
+    HWND hWnd = NULL;
+    HRESULT hr = pwba->get_HWND((LONG_PTR*)& hWnd);
+    if (hr == S_OK)
+    {
+        TCHAR szClass[256] = { 0 };
+        ::GetClassName(hWnd, szClass, 256); //szClass = 0x0012f980 "ExploreWClass"
+        if ((lstrcmp(szClass, _T("ExploreWClass")) == 0) || (lstrcmp(szClass, _T("CabinetWClass")) == 0))
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+const LONG_PTR winSign = 0x12345678;
+void SetExplorerWindowsHook(CComPtr<IWebBrowserApp>& pwba)
+{
+    HWND hWnd = NULL;
+    HRESULT hr = pwba->get_HWND((LONG_PTR*)& hWnd);
+    if (hr == S_OK)
+    {
+        ::SetWindowLongPtr(hWnd, GWLP_USERDATA, winSign);
+    }
+}
+
+BOOL IsExplorerWindowsHooked(CComPtr<IWebBrowserApp>& pwba)
+{
+    HWND hWnd = NULL;
+    HRESULT hr = pwba->get_HWND((LONG_PTR*)& hWnd);
+    if (hr == S_OK)
+    {
+        LONG_PTR sign = ::GetWindowLongPtr(hWnd, GWLP_USERDATA);
+
+        return (sign == winSign);
+    }
+
+    return FALSE;
+}
+
+HWND GetExplorerWindowHwnd(CComPtr<IWebBrowserApp>& pwba)
+{
+    HWND hWnd = NULL;
+    HRESULT hr = pwba->get_HWND((LONG_PTR*)& hWnd);
+    if (hr == S_OK)
+    {
+        return hWnd;
+    }
+
+    return NULL;
+}
+
+HRESULT GetShellBrowser(CComPtr<IWebBrowserApp>& pwba, CComPtr<IShellBrowser>& psb)
+{
+    CComQIPtr<IServiceProvider> psp;
+
+    HRESULT hr = pwba->QueryInterface(IID_IServiceProvider, reinterpret_cast<void**>(&psp));
+    if (SUCCEEDED(hr))
+    {
+        hr = psp->QueryService(SID_STopLevelBrowser, IID_IShellBrowser, reinterpret_cast<LPVOID*>(&psb));
+    }
+
+    return hr;
+}
+
+HRESULT OnExplorerAttached(CComPtr<IWebBrowserApp>& pwba)
+{
+    if (IsExplorerWindowsHooked(pwba))
+    {
+        return S_OK;
+    }
+    HWND hWnd = GetExplorerWindowHwnd(pwba);
+    if (hWnd == NULL)
+    {
+        return E_FAIL;
+    }
+
+    CComPtr<IShellBrowser> psb;
+    HRESULT hr = GetShellBrowser(pwba, psb);
+    if (hr == S_OK)
+    {
+        GetHookMgmt().InitShellBrowserHook(psb);
+        //psb->SetUsingListView();
+    }
+    return hr;
+}
+
+HRESULT EnumExplorerWindows(CComPtr<IShellWindows>& psw)
+{
+    long count = 0;
+    HRESULT hr = psw->get_Count(&count);
+
+    LogTrace(_T("Find %d Explorer windows"), count);
+
+    VARIANT v;
+    //VariantInit(&v);
+    V_VT(&v) = VT_I4;
+    CComPtr<IDispatch> pdisp;
+    for (V_I4(&v) = 0; psw->Item(v, &pdisp) == S_OK; V_I4(&v)++)
+    {
+        CComPtr<IWebBrowserApp> pwba;
+        hr = pdisp->QueryInterface(__uuidof(IWebBrowserApp), (void**)& pwba);
+        if ((hr == S_OK) && IsExplorerAppWindow(pwba))
+        {
+            OnExplorerAttached(pwba);
+        }
+        pdisp.Release();
+    }
+
+    return hr;
+}
+
+void TestGetShellObject2()
+{
+    CComPtr<IShellWindows> psw;
+    HRESULT hr = psw.CoCreateInstance(CLSID_ShellWindows);
+    if (SUCCEEDED(hr) && (hr == S_OK))
+    {
+        hr = EnumExplorerWindows(psw);
+    }
+    psw.Release();
+}
+
 STDMETHODIMP CSimpleShlExt::InvokeCommand(LPCMINVOKECOMMANDINFO pCmdInfo)
 {
     // If lpVerb really points to a string, ignore this function call and bail out.
@@ -143,7 +269,7 @@ STDMETHODIMP CSimpleShlExt::InvokeCommand(LPCMINVOKECOMMANDINFO pCmdInfo)
             TCHAR szMsg [MAX_PATH + 32];
 
             wsprintf ( szMsg, _T("The selected file was:\n\n%s"), m_szFile );
-            TestGetShellObject();
+            TestGetShellObject2();
             //MessageBox ( pCmdInfo->hwnd, szMsg, _T("SimpleShlExt"), MB_ICONINFORMATION );
 
             return S_OK;

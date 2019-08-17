@@ -1,0 +1,59 @@
+HKCR
+{
+	TabExplorer.TabExplorerBHO.1 = s 'TabExplorerBHO Class'
+	{
+		CLSID = s '{70AF1B13-ACC5-4108-909D-514D3EA15C88}'
+	}
+	TabExplorer.TabExplorerBHO = s 'TabExplorerBHO Class'
+	{
+		CLSID = s '{70AF1B13-ACC5-4108-909D-514D3EA15C88}'
+		CurVer = s 'TabExplorer.TabExplorerBHO.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {70AF1B13-ACC5-4108-909D-514D3EA15C88} = s 'TabExplorerBHO Class'
+		{
+			ProgID = s 'TabExplorer.TabExplorerBHO.1'
+			VersionIndependentProgID = s 'TabExplorer.TabExplorerBHO'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			'TypeLib' = s '{3fc345a8-4fda-4fb7-8762-50de64a370fe}'
+		}
+	}
+}
+
+HKLM
+{
+	NoRemove SOFTWARE
+	{
+		NoRemove Microsoft
+		{
+			NoRemove Windows
+			{
+				NoRemove CurrentVersion
+				{
+					NoRemove Explorer
+					{
+						NoRemove 'Browser Helper Objects'
+						{
+							ForceRemove {70AF1B13-ACC5-4108-909D-514D3EA15C88}
+						}
+					}
+					NoRemove Policies
+					{
+						NoRemove Ext
+						{
+							NoRemove CLSID
+							{
+								ForceRemove	val {70AF1B13-ACC5-4108-909D-514D3EA15C88} = s '2'
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

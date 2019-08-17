@@ -11,11 +11,15 @@
 
 #include "SimpleExt_i.c"
 #include "SimpleShlExt.h"
+#include "BandObject.h"
+#include "DllMain.h"
+#include "DebugLog.h"
 
 CComModule _Module;
 
 BEGIN_OBJECT_MAP(ObjectMap)
 OBJECT_ENTRY(CLSID_SimpleShlExt, CSimpleShlExt)
+OBJECT_ENTRY(CLSID_BandObject, CBandObject)
 END_OBJECT_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -28,9 +32,19 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
     {
         _Module.Init(ObjectMap, hInstance, &LIBID_SIMPLEEXTLib);
         DisableThreadLibraryCalls(hInstance);
+        LogTrace(_T("SimpleShlExt::DllMain() process attach..."));
+		if (!OnShellExtLoaded(hInstance))
+		{
+			LogFatalErr(_T("OnShellExtLoaded failed in DllMain()!"));
+			return FALSE;
+		}
     }
     else if (dwReason == DLL_PROCESS_DETACH)
-        _Module.Term();
+	{
+        LogTrace(_T("SimpleShlExt::DllMain() process detach..."));
+		OnShellExtUnloaded();
+		_Module.Term();
+	}
     return TRUE;    // ok
 }
 

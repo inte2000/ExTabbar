@@ -4,7 +4,5 @@
     <LocalDebuggerCommand>C:\Windows\explorer.exe</LocalDebuggerCommand>
     <LocalDebuggerAttach>true</LocalDebuggerAttach>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>
-    </LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

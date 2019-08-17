@@ -95,7 +95,7 @@ END
 //
 
 IDR_SIMPLESHLEXT        REGISTRY DISCARDABLE    "res\\SimpleShlExt.rgs"
-
+IDR_BANDOBJECT          REGISTRY  DISCARDABLE   "res\\BandObject.rgs"
 /////////////////////////////////////////////////////////////////////////////
 //
 // Icon

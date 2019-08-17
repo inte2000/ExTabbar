@@ -29,8 +29,13 @@ extern CComModule _Module;
 #include <shlobj.h>
 #include <comdef.h>
 
+#include <windows.h>
 #include <VersionHelpers.h>
 
+#include <string>
+typedef std::basic_string<TCHAR> TString;
+
+#include "DebugLog.h"
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

@@ -6,7 +6,7 @@
  /* File created by MIDL compiler version 8.01.0622 */
 /* at Tue Jan 19 11:14:07 2038
  */
-/* Compiler settings for SimpleExt.idl:
+/* Compiler settings for TabExplorer.idl:
     Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
     protocol : all , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
@@ -44,7 +44,7 @@
 #endif /* __RPCPROXY_H_VERSION__ */
 
 
-#include "SimpleExt.h"
+#include "TabExplorer_i.h"
 
 #define TYPE_FORMAT_STRING_SIZE   3                                 
 #define PROC_FORMAT_STRING_SIZE   1                                 
@@ -52,23 +52,23 @@
 #define TRANSMIT_AS_TABLE_SIZE    0            
 #define WIRE_MARSHAL_TABLE_SIZE   0            
 
-typedef struct _SimpleExt_MIDL_TYPE_FORMAT_STRING
+typedef struct _TabExplorer_MIDL_TYPE_FORMAT_STRING
     {
     short          Pad;
     unsigned char  Format[ TYPE_FORMAT_STRING_SIZE ];
-    } SimpleExt_MIDL_TYPE_FORMAT_STRING;
+    } TabExplorer_MIDL_TYPE_FORMAT_STRING;
 
-typedef struct _SimpleExt_MIDL_PROC_FORMAT_STRING
+typedef struct _TabExplorer_MIDL_PROC_FORMAT_STRING
     {
     short          Pad;
     unsigned char  Format[ PROC_FORMAT_STRING_SIZE ];
-    } SimpleExt_MIDL_PROC_FORMAT_STRING;
+    } TabExplorer_MIDL_PROC_FORMAT_STRING;
 
-typedef struct _SimpleExt_MIDL_EXPR_FORMAT_STRING
+typedef struct _TabExplorer_MIDL_EXPR_FORMAT_STRING
     {
     long          Pad;
     unsigned char  Format[ EXPR_FORMAT_STRING_SIZE ];
-    } SimpleExt_MIDL_EXPR_FORMAT_STRING;
+    } TabExplorer_MIDL_EXPR_FORMAT_STRING;
 
 
 static const RPC_SYNTAX_IDENTIFIER  _RpcTransferSyntax = 
@@ -79,23 +79,23 @@ static const RPC_SYNTAX_IDENTIFIER  _NDR64_RpcTransferSyntax =
 
 
 
-extern const SimpleExt_MIDL_TYPE_FORMAT_STRING SimpleExt__MIDL_TypeFormatString;
-extern const SimpleExt_MIDL_PROC_FORMAT_STRING SimpleExt__MIDL_ProcFormatString;
-extern const SimpleExt_MIDL_EXPR_FORMAT_STRING SimpleExt__MIDL_ExprFormatString;
+extern const TabExplorer_MIDL_TYPE_FORMAT_STRING TabExplorer__MIDL_TypeFormatString;
+extern const TabExplorer_MIDL_PROC_FORMAT_STRING TabExplorer__MIDL_ProcFormatString;
+extern const TabExplorer_MIDL_EXPR_FORMAT_STRING TabExplorer__MIDL_ExprFormatString;
 
 
 extern const MIDL_STUB_DESC Object_StubDesc;
 
 
-extern const MIDL_SERVER_INFO IBandObject_ServerInfo;
-extern const MIDL_STUBLESS_PROXY_INFO IBandObject_ProxyInfo;
+extern const MIDL_SERVER_INFO ITabExplorerBHO_ServerInfo;
+extern const MIDL_STUBLESS_PROXY_INFO ITabExplorerBHO_ProxyInfo;
 
 
 extern const MIDL_STUB_DESC Object_StubDesc;
 
 
-extern const MIDL_SERVER_INFO ISimpleShlExt_ServerInfo;
-extern const MIDL_STUBLESS_PROXY_INFO ISimpleShlExt_ProxyInfo;
+extern const MIDL_SERVER_INFO ITabbarBand_ServerInfo;
+extern const MIDL_STUBLESS_PROXY_INFO ITabbarBand_ProxyInfo;
 
 
 
@@ -103,7 +103,7 @@ extern const MIDL_STUBLESS_PROXY_INFO ISimpleShlExt_ProxyInfo;
 #error  Invalid build platform for this stub.
 #endif
 
-static const SimpleExt_MIDL_PROC_FORMAT_STRING SimpleExt__MIDL_ProcFormatString =
+static const TabExplorer_MIDL_PROC_FORMAT_STRING TabExplorer__MIDL_ProcFormatString =
     {
         0,
         {
@@ -112,7 +112,7 @@ static const SimpleExt_MIDL_PROC_FORMAT_STRING SimpleExt__MIDL_ProcFormatString 
         }
     };
 
-static const SimpleExt_MIDL_TYPE_FORMAT_STRING SimpleExt__MIDL_TypeFormatString =
+static const TabExplorer_MIDL_TYPE_FORMAT_STRING TabExplorer__MIDL_TypeFormatString =
     {
         0,
         {
@@ -131,11 +131,11 @@ static const SimpleExt_MIDL_TYPE_FORMAT_STRING SimpleExt__MIDL_TypeFormatString 
    GUID={0x00020400,0x0000,0x0000,{0xC0,0x00,0x00,0x00,0x00,0x00,0x00,0x46}} */
 
 
-/* Object interface: IBandObject, ver. 0.0,
-   GUID={0x20C53787,0xC1BA,0x4AEB,{0xBF,0x10,0x61,0xAC,0xD6,0xA7,0x89,0x29}} */
+/* Object interface: ITabExplorerBHO, ver. 0.0,
+   GUID={0x9442648A,0x428E,0x4F22,{0xB0,0x3A,0x51,0xD6,0xEE,0x9F,0xCB,0xFA}} */
 
 #pragma code_seg(".orpc")
-static const unsigned short IBandObject_FormatStringOffsetTable[] =
+static const unsigned short ITabExplorerBHO_FormatStringOffsetTable[] =
     {
     (unsigned short) -1,
     (unsigned short) -1,
@@ -146,11 +146,11 @@ static const unsigned short IBandObject_FormatStringOffsetTable[] =
 
 
 
-/* Object interface: ISimpleShlExt, ver. 0.0,
-   GUID={0x2A0D8430,0xF0ED,0x4103,{0xB6,0x27,0x66,0x67,0x63,0xB6,0xF8,0x0F}} */
+/* Object interface: ITabbarBand, ver. 0.0,
+   GUID={0x931743A6,0x9BAF,0x420C,{0x9C,0xF6,0x78,0x45,0x9D,0x9F,0x77,0x20}} */
 
 #pragma code_seg(".orpc")
-static const unsigned short ISimpleShlExt_FormatStringOffsetTable[] =
+static const unsigned short ITabbarBand_FormatStringOffsetTable[] =
     {
     (unsigned short) -1,
     (unsigned short) -1,
@@ -171,7 +171,7 @@ static const unsigned short ISimpleShlExt_FormatStringOffsetTable[] =
  /* File created by MIDL compiler version 8.01.0622 */
 /* at Tue Jan 19 11:14:07 2038
  */
-/* Compiler settings for SimpleExt.idl:
+/* Compiler settings for TabExplorer.idl:
     Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
     protocol : all , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
@@ -216,11 +216,11 @@ static const __midl_frag1_t __midl_frag1 =
    GUID={0x00020400,0x0000,0x0000,{0xC0,0x00,0x00,0x00,0x00,0x00,0x00,0x46}} */
 
 
-/* Object interface: IBandObject, ver. 0.0,
-   GUID={0x20C53787,0xC1BA,0x4AEB,{0xBF,0x10,0x61,0xAC,0xD6,0xA7,0x89,0x29}} */
+/* Object interface: ITabExplorerBHO, ver. 0.0,
+   GUID={0x9442648A,0x428E,0x4F22,{0xB0,0x3A,0x51,0xD6,0xEE,0x9F,0xCB,0xFA}} */
 
 #pragma code_seg(".orpc")
-static const FormatInfoRef IBandObject_Ndr64ProcTable[] =
+static const FormatInfoRef ITabExplorerBHO_Ndr64ProcTable[] =
     {
     (FormatInfoRef)(LONG_PTR) -1,
     (FormatInfoRef)(LONG_PTR) -1,
@@ -230,14 +230,14 @@ static const FormatInfoRef IBandObject_Ndr64ProcTable[] =
     };
 
 
-static const MIDL_SYNTAX_INFO IBandObject_SyntaxInfo [  2 ] = 
+static const MIDL_SYNTAX_INFO ITabExplorerBHO_SyntaxInfo [  2 ] = 
     {
     {
     {{0x8A885D04,0x1CEB,0x11C9,{0x9F,0xE8,0x08,0x00,0x2B,0x10,0x48,0x60}},{2,0}},
     0,
-    SimpleExt__MIDL_ProcFormatString.Format,
-    &IBandObject_FormatStringOffsetTable[-3],
-    SimpleExt__MIDL_TypeFormatString.Format,
+    TabExplorer__MIDL_ProcFormatString.Format,
+    &ITabExplorerBHO_FormatStringOffsetTable[-3],
+    TabExplorer__MIDL_TypeFormatString.Format,
     0,
     0,
     0
@@ -246,7 +246,7 @@ static const MIDL_SYNTAX_INFO IBandObject_SyntaxInfo [  2 ] =
     {{0x71710533,0xbeba,0x4937,{0x83,0x19,0xb5,0xdb,0xef,0x9c,0xcc,0x36}},{1,0}},
     0,
     0 ,
-    (unsigned short *) &IBandObject_Ndr64ProcTable[-3],
+    (unsigned short *) &ITabExplorerBHO_Ndr64ProcTable[-3],
     0,
     0,
     0,
@@ -254,33 +254,33 @@ static const MIDL_SYNTAX_INFO IBandObject_SyntaxInfo [  2 ] =
     }
     };
 
-static const MIDL_STUBLESS_PROXY_INFO IBandObject_ProxyInfo =
+static const MIDL_STUBLESS_PROXY_INFO ITabExplorerBHO_ProxyInfo =
     {
     &Object_StubDesc,
-    SimpleExt__MIDL_ProcFormatString.Format,
-    &IBandObject_FormatStringOffsetTable[-3],
+    TabExplorer__MIDL_ProcFormatString.Format,
+    &ITabExplorerBHO_FormatStringOffsetTable[-3],
     (RPC_SYNTAX_IDENTIFIER*)&_RpcTransferSyntax,
     2,
-    (MIDL_SYNTAX_INFO*)IBandObject_SyntaxInfo
+    (MIDL_SYNTAX_INFO*)ITabExplorerBHO_SyntaxInfo
     
     };
 
 
-static const MIDL_SERVER_INFO IBandObject_ServerInfo = 
+static const MIDL_SERVER_INFO ITabExplorerBHO_ServerInfo = 
     {
     &Object_StubDesc,
     0,
-    SimpleExt__MIDL_ProcFormatString.Format,
-    (unsigned short *) &IBandObject_FormatStringOffsetTable[-3],
+    TabExplorer__MIDL_ProcFormatString.Format,
+    (unsigned short *) &ITabExplorerBHO_FormatStringOffsetTable[-3],
     0,
     (RPC_SYNTAX_IDENTIFIER*)&_NDR64_RpcTransferSyntax,
     2,
-    (MIDL_SYNTAX_INFO*)IBandObject_SyntaxInfo
+    (MIDL_SYNTAX_INFO*)ITabExplorerBHO_SyntaxInfo
     };
-CINTERFACE_PROXY_VTABLE(7) _IBandObjectProxyVtbl = 
+CINTERFACE_PROXY_VTABLE(7) _ITabExplorerBHOProxyVtbl = 
 {
     0,
-    &IID_IBandObject,
+    &IID_ITabExplorerBHO,
     IUnknown_QueryInterface_Proxy,
     IUnknown_AddRef_Proxy,
     IUnknown_Release_Proxy ,
@@ -291,7 +291,7 @@ CINTERFACE_PROXY_VTABLE(7) _IBandObjectProxyVtbl =
 };
 
 
-static const PRPC_STUB_FUNCTION IBandObject_table[] =
+static const PRPC_STUB_FUNCTION ITabExplorerBHO_table[] =
 {
     STUB_FORWARDING_FUNCTION,
     STUB_FORWARDING_FUNCTION,
@@ -299,21 +299,21 @@ static const PRPC_STUB_FUNCTION IBandObject_table[] =
     STUB_FORWARDING_FUNCTION
 };
 
-CInterfaceStubVtbl _IBandObjectStubVtbl =
+CInterfaceStubVtbl _ITabExplorerBHOStubVtbl =
 {
-    &IID_IBandObject,
-    &IBandObject_ServerInfo,
+    &IID_ITabExplorerBHO,
+    &ITabExplorerBHO_ServerInfo,
     7,
-    &IBandObject_table[-3],
+    &ITabExplorerBHO_table[-3],
     CStdStubBuffer_DELEGATING_METHODS
 };
 
 
-/* Object interface: ISimpleShlExt, ver. 0.0,
-   GUID={0x2A0D8430,0xF0ED,0x4103,{0xB6,0x27,0x66,0x67,0x63,0xB6,0xF8,0x0F}} */
+/* Object interface: ITabbarBand, ver. 0.0,
+   GUID={0x931743A6,0x9BAF,0x420C,{0x9C,0xF6,0x78,0x45,0x9D,0x9F,0x77,0x20}} */
 
 #pragma code_seg(".orpc")
-static const FormatInfoRef ISimpleShlExt_Ndr64ProcTable[] =
+static const FormatInfoRef ITabbarBand_Ndr64ProcTable[] =
     {
     (FormatInfoRef)(LONG_PTR) -1,
     (FormatInfoRef)(LONG_PTR) -1,
@@ -323,14 +323,14 @@ static const FormatInfoRef ISimpleShlExt_Ndr64ProcTable[] =
     };
 
 
-static const MIDL_SYNTAX_INFO ISimpleShlExt_SyntaxInfo [  2 ] = 
+static const MIDL_SYNTAX_INFO ITabbarBand_SyntaxInfo [  2 ] = 
     {
     {
     {{0x8A885D04,0x1CEB,0x11C9,{0x9F,0xE8,0x08,0x00,0x2B,0x10,0x48,0x60}},{2,0}},
     0,
-    SimpleExt__MIDL_ProcFormatString.Format,
-    &ISimpleShlExt_FormatStringOffsetTable[-3],
-    SimpleExt__MIDL_TypeFormatString.Format,
+    TabExplorer__MIDL_ProcFormatString.Format,
+    &ITabbarBand_FormatStringOffsetTable[-3],
+    TabExplorer__MIDL_TypeFormatString.Format,
     0,
     0,
     0
@@ -339,7 +339,7 @@ static const MIDL_SYNTAX_INFO ISimpleShlExt_SyntaxInfo [  2 ] =
     {{0x71710533,0xbeba,0x4937,{0x83,0x19,0xb5,0xdb,0xef,0x9c,0xcc,0x36}},{1,0}},
     0,
     0 ,
-    (unsigned short *) &ISimpleShlExt_Ndr64ProcTable[-3],
+    (unsigned short *) &ITabbarBand_Ndr64ProcTable[-3],
     0,
     0,
     0,
@@ -347,33 +347,33 @@ static const MIDL_SYNTAX_INFO ISimpleShlExt_SyntaxInfo [  2 ] =
     }
     };
 
-static const MIDL_STUBLESS_PROXY_INFO ISimpleShlExt_ProxyInfo =
+static const MIDL_STUBLESS_PROXY_INFO ITabbarBand_ProxyInfo =
     {
     &Object_StubDesc,
-    SimpleExt__MIDL_ProcFormatString.Format,
-    &ISimpleShlExt_FormatStringOffsetTable[-3],
+    TabExplorer__MIDL_ProcFormatString.Format,
+    &ITabbarBand_FormatStringOffsetTable[-3],
     (RPC_SYNTAX_IDENTIFIER*)&_RpcTransferSyntax,
     2,
-    (MIDL_SYNTAX_INFO*)ISimpleShlExt_SyntaxInfo
+    (MIDL_SYNTAX_INFO*)ITabbarBand_SyntaxInfo
     
     };
 
 
-static const MIDL_SERVER_INFO ISimpleShlExt_ServerInfo = 
+static const MIDL_SERVER_INFO ITabbarBand_ServerInfo = 
     {
     &Object_StubDesc,
     0,
-    SimpleExt__MIDL_ProcFormatString.Format,
-    (unsigned short *) &ISimpleShlExt_FormatStringOffsetTable[-3],
+    TabExplorer__MIDL_ProcFormatString.Format,
+    (unsigned short *) &ITabbarBand_FormatStringOffsetTable[-3],
     0,
     (RPC_SYNTAX_IDENTIFIER*)&_NDR64_RpcTransferSyntax,
     2,
-    (MIDL_SYNTAX_INFO*)ISimpleShlExt_SyntaxInfo
+    (MIDL_SYNTAX_INFO*)ITabbarBand_SyntaxInfo
     };
-CINTERFACE_PROXY_VTABLE(7) _ISimpleShlExtProxyVtbl = 
+CINTERFACE_PROXY_VTABLE(7) _ITabbarBandProxyVtbl = 
 {
     0,
-    &IID_ISimpleShlExt,
+    &IID_ITabbarBand,
     IUnknown_QueryInterface_Proxy,
     IUnknown_AddRef_Proxy,
     IUnknown_Release_Proxy ,
@@ -384,7 +384,7 @@ CINTERFACE_PROXY_VTABLE(7) _ISimpleShlExtProxyVtbl =
 };
 
 
-static const PRPC_STUB_FUNCTION ISimpleShlExt_table[] =
+static const PRPC_STUB_FUNCTION ITabbarBand_table[] =
 {
     STUB_FORWARDING_FUNCTION,
     STUB_FORWARDING_FUNCTION,
@@ -392,12 +392,12 @@ static const PRPC_STUB_FUNCTION ISimpleShlExt_table[] =
     STUB_FORWARDING_FUNCTION
 };
 
-CInterfaceStubVtbl _ISimpleShlExtStubVtbl =
+CInterfaceStubVtbl _ITabbarBandStubVtbl =
 {
-    &IID_ISimpleShlExt,
-    &ISimpleShlExt_ServerInfo,
+    &IID_ITabbarBand,
+    &ITabbarBand_ServerInfo,
     7,
-    &ISimpleShlExt_table[-3],
+    &ITabbarBand_table[-3],
     CStdStubBuffer_DELEGATING_METHODS
 };
 
@@ -411,7 +411,7 @@ static const MIDL_STUB_DESC Object_StubDesc =
     0,
     0,
     0,
-    SimpleExt__MIDL_TypeFormatString.Format,
+    TabExplorer__MIDL_TypeFormatString.Format,
     1, /* -error bounds_check flag */
     0x60001, /* Ndr library version */
     0,
@@ -425,28 +425,28 @@ static const MIDL_STUB_DESC Object_StubDesc =
     0
     };
 
-const CInterfaceProxyVtbl * const _SimpleExt_ProxyVtblList[] = 
+const CInterfaceProxyVtbl * const _TabExplorer_ProxyVtblList[] = 
 {
-    ( CInterfaceProxyVtbl *) &_ISimpleShlExtProxyVtbl,
-    ( CInterfaceProxyVtbl *) &_IBandObjectProxyVtbl,
+    ( CInterfaceProxyVtbl *) &_ITabExplorerBHOProxyVtbl,
+    ( CInterfaceProxyVtbl *) &_ITabbarBandProxyVtbl,
     0
 };
 
-const CInterfaceStubVtbl * const _SimpleExt_StubVtblList[] = 
+const CInterfaceStubVtbl * const _TabExplorer_StubVtblList[] = 
 {
-    ( CInterfaceStubVtbl *) &_ISimpleShlExtStubVtbl,
-    ( CInterfaceStubVtbl *) &_IBandObjectStubVtbl,
+    ( CInterfaceStubVtbl *) &_ITabExplorerBHOStubVtbl,
+    ( CInterfaceStubVtbl *) &_ITabbarBandStubVtbl,
     0
 };
 
-PCInterfaceName const _SimpleExt_InterfaceNamesList[] = 
+PCInterfaceName const _TabExplorer_InterfaceNamesList[] = 
 {
-    "ISimpleShlExt",
-    "IBandObject",
+    "ITabExplorerBHO",
+    "ITabbarBand",
     0
 };
 
-const IID *  const _SimpleExt_BaseIIDList[] = 
+const IID *  const _TabExplorer_BaseIIDList[] = 
 {
     &IID_IDispatch,
     &IID_IDispatch,
@@ -454,24 +454,24 @@ const IID *  const _SimpleExt_BaseIIDList[] =
 };
 
 
-#define _SimpleExt_CHECK_IID(n)	IID_GENERIC_CHECK_IID( _SimpleExt, pIID, n)
+#define _TabExplorer_CHECK_IID(n)	IID_GENERIC_CHECK_IID( _TabExplorer, pIID, n)
 
-int __stdcall _SimpleExt_IID_Lookup( const IID * pIID, int * pIndex )
+int __stdcall _TabExplorer_IID_Lookup( const IID * pIID, int * pIndex )
 {
     IID_BS_LOOKUP_SETUP
 
-    IID_BS_LOOKUP_INITIAL_TEST( _SimpleExt, 2, 1 )
-    IID_BS_LOOKUP_RETURN_RESULT( _SimpleExt, 2, *pIndex )
+    IID_BS_LOOKUP_INITIAL_TEST( _TabExplorer, 2, 1 )
+    IID_BS_LOOKUP_RETURN_RESULT( _TabExplorer, 2, *pIndex )
     
 }
 
-const ExtendedProxyFileInfo SimpleExt_ProxyFileInfo = 
+const ExtendedProxyFileInfo TabExplorer_ProxyFileInfo = 
 {
-    (PCInterfaceProxyVtblList *) & _SimpleExt_ProxyVtblList,
-    (PCInterfaceStubVtblList *) & _SimpleExt_StubVtblList,
-    (const PCInterfaceName * ) & _SimpleExt_InterfaceNamesList,
-    (const IID ** ) & _SimpleExt_BaseIIDList,
-    & _SimpleExt_IID_Lookup, 
+    (PCInterfaceProxyVtblList *) & _TabExplorer_ProxyVtblList,
+    (PCInterfaceStubVtblList *) & _TabExplorer_StubVtblList,
+    (const PCInterfaceName * ) & _TabExplorer_InterfaceNamesList,
+    (const IID ** ) & _TabExplorer_BaseIIDList,
+    & _TabExplorer_IID_Lookup, 
     2,
     2,
     0, /* table of [async_uuid] interfaces */

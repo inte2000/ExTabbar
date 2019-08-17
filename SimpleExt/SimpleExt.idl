@@ -6,16 +6,28 @@
 
 import "oaidl.idl";
 import "ocidl.idl";
-	[
-		object,
-		uuid(2A0D8430-F0ED-4103-B627-666763B6F80F),
-		dual,
-		helpstring("ISimpleShlExt Interface"),
-		pointer_default(unique)
-	]
-	interface ISimpleShlExt : IDispatch
-	{
-	};
+
+[
+    object,
+    uuid(20C53787-C1BA-4AEB-BF10-61ACD6A78929),
+    dual,
+    helpstring("IBandObject Interface"),
+    pointer_default(unique)
+]
+interface IBandObject : IDispatch 
+{
+};
+
+[
+	object,
+	uuid(2A0D8430-F0ED-4103-B627-666763B6F80F),
+	dual,
+	helpstring("ISimpleShlExt Interface"),
+	pointer_default(unique)
+]
+interface ISimpleShlExt : IDispatch
+{
+};
 
 [
 	uuid(A5C66843-DE62-4c71-A744-B64BE95EAABA),
@@ -26,6 +38,15 @@ library SIMPLEEXTLib
 {
 	importlib("stdole32.tlb");
 	importlib("stdole2.tlb");
+
+    [
+        uuid(56419827-78E0-43ED-9E20-2B6B1C7AF534),
+        helpstring("BandObject Class")
+    ]
+    coclass BandObject
+    {
+        [default] interface IBandObject;
+    };
 
 	[
 		uuid(9FD4B86D-2BB8-423d-ACB0-E6D1C9A7B47D),

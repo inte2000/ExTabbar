@@ -4,10 +4,11 @@
 //
 #define IDS_PROJNAME                    100
 #define IDR_SIMPLESHLEXT                101
-#define IDI_ZERO_BYTES                  100
-#define IDI_UNDER_4K                    101
-#define IDI_UNDER_8K                    102
-#define IDI_OVER_8K                     103
+#define IDR_BANDOBJECT                  102
+#define IDI_ZERO_BYTES                  110
+#define IDI_UNDER_4K                    111
+#define IDI_UNDER_8K                    112
+#define IDI_OVER_8K                     113
 
 // Next default values for new objects
 // 
@@ -16,6 +17,6 @@
 #define _APS_NEXT_RESOURCE_VALUE        201
 #define _APS_NEXT_COMMAND_VALUE         32768
 #define _APS_NEXT_CONTROL_VALUE         201
-#define _APS_NEXT_SYMED_VALUE           104
+#define _APS_NEXT_SYMED_VALUE           114
 #endif
 #endif

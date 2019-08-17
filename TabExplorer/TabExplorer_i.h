@@ -6,7 +6,7 @@
  /* File created by MIDL compiler version 8.01.0622 */
 /* at Tue Jan 19 11:14:07 2038
  */
-/* Compiler settings for SimpleExt.idl:
+/* Compiler settings for TabExplorer.idl:
     Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
     protocol : all , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
@@ -35,8 +35,8 @@
 #include "ole2.h"
 #endif /*COM_NO_WINDOWS_H*/
 
-#ifndef __SimpleExt_h__
-#define __SimpleExt_h__
+#ifndef __TabExplorer_i_h__
+#define __TabExplorer_i_h__
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
@@ -44,42 +44,42 @@
 
 /* Forward Declarations */ 
 
-#ifndef __IBandObject_FWD_DEFINED__
-#define __IBandObject_FWD_DEFINED__
-typedef interface IBandObject IBandObject;
+#ifndef __ITabExplorerBHO_FWD_DEFINED__
+#define __ITabExplorerBHO_FWD_DEFINED__
+typedef interface ITabExplorerBHO ITabExplorerBHO;
 
-#endif 	/* __IBandObject_FWD_DEFINED__ */
-
-
-#ifndef __ISimpleShlExt_FWD_DEFINED__
-#define __ISimpleShlExt_FWD_DEFINED__
-typedef interface ISimpleShlExt ISimpleShlExt;
-
-#endif 	/* __ISimpleShlExt_FWD_DEFINED__ */
+#endif 	/* __ITabExplorerBHO_FWD_DEFINED__ */
 
 
-#ifndef __BandObject_FWD_DEFINED__
-#define __BandObject_FWD_DEFINED__
+#ifndef __ITabbarBand_FWD_DEFINED__
+#define __ITabbarBand_FWD_DEFINED__
+typedef interface ITabbarBand ITabbarBand;
 
-#ifdef __cplusplus
-typedef class BandObject BandObject;
-#else
-typedef struct BandObject BandObject;
-#endif /* __cplusplus */
-
-#endif 	/* __BandObject_FWD_DEFINED__ */
+#endif 	/* __ITabbarBand_FWD_DEFINED__ */
 
 
-#ifndef __SimpleShlExt_FWD_DEFINED__
-#define __SimpleShlExt_FWD_DEFINED__
+#ifndef __TabExplorerBHO_FWD_DEFINED__
+#define __TabExplorerBHO_FWD_DEFINED__
 
 #ifdef __cplusplus
-typedef class SimpleShlExt SimpleShlExt;
+typedef class TabExplorerBHO TabExplorerBHO;
 #else
-typedef struct SimpleShlExt SimpleShlExt;
+typedef struct TabExplorerBHO TabExplorerBHO;
 #endif /* __cplusplus */
 
-#endif 	/* __SimpleShlExt_FWD_DEFINED__ */
+#endif 	/* __TabExplorerBHO_FWD_DEFINED__ */
+
+
+#ifndef __TabbarBand_FWD_DEFINED__
+#define __TabbarBand_FWD_DEFINED__
+
+#ifdef __cplusplus
+typedef class TabbarBand TabbarBand;
+#else
+typedef struct TabbarBand TabbarBand;
+#endif /* __cplusplus */
+
+#endif 	/* __TabbarBand_FWD_DEFINED__ */
 
 
 /* header files for imported files */
@@ -91,19 +91,19 @@ extern "C"{
 #endif 
 
 
-#ifndef __IBandObject_INTERFACE_DEFINED__
-#define __IBandObject_INTERFACE_DEFINED__
+#ifndef __ITabExplorerBHO_INTERFACE_DEFINED__
+#define __ITabExplorerBHO_INTERFACE_DEFINED__
 
-/* interface IBandObject */
-/* [unique][helpstring][dual][uuid][object] */ 
+/* interface ITabExplorerBHO */
+/* [unique][helpstring][nonextensible][dual][uuid][object] */ 
 
 
-EXTERN_C const IID IID_IBandObject;
+EXTERN_C const IID IID_ITabExplorerBHO;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
     
-    MIDL_INTERFACE("20C53787-C1BA-4AEB-BF10-61ACD6A78929")
-    IBandObject : public IDispatch
+    MIDL_INTERFACE("9442648A-428E-4F22-B03A-51D6EE9FCBFA")
+    ITabExplorerBHO : public IDispatch
     {
     public:
     };
@@ -111,34 +111,34 @@ EXTERN_C const IID IID_IBandObject;
     
 #else 	/* C style interface */
 
-    typedef struct IBandObjectVtbl
+    typedef struct ITabExplorerBHOVtbl
     {
         BEGIN_INTERFACE
         
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
-            IBandObject * This,
+            ITabExplorerBHO * This,
             /* [in] */ REFIID riid,
             /* [annotation][iid_is][out] */ 
             _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
-            IBandObject * This);
+            ITabExplorerBHO * This);
         
         ULONG ( STDMETHODCALLTYPE *Release )( 
-            IBandObject * This);
+            ITabExplorerBHO * This);
         
         HRESULT ( STDMETHODCALLTYPE *GetTypeInfoCount )( 
-            IBandObject * This,
+            ITabExplorerBHO * This,
             /* [out] */ UINT *pctinfo);
         
         HRESULT ( STDMETHODCALLTYPE *GetTypeInfo )( 
-            IBandObject * This,
+            ITabExplorerBHO * This,
             /* [in] */ UINT iTInfo,
             /* [in] */ LCID lcid,
             /* [out] */ ITypeInfo **ppTInfo);
         
         HRESULT ( STDMETHODCALLTYPE *GetIDsOfNames )( 
-            IBandObject * This,
+            ITabExplorerBHO * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
             /* [range][in] */ UINT cNames,
@@ -146,7 +146,7 @@ EXTERN_C const IID IID_IBandObject;
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
-            IBandObject * This,
+            ITabExplorerBHO * This,
             /* [annotation][in] */ 
             _In_  DISPID dispIdMember,
             /* [annotation][in] */ 
@@ -165,11 +165,11 @@ EXTERN_C const IID IID_IBandObject;
             _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
-    } IBandObjectVtbl;
+    } ITabExplorerBHOVtbl;
 
-    interface IBandObject
+    interface ITabExplorerBHO
     {
-        CONST_VTBL struct IBandObjectVtbl *lpVtbl;
+        CONST_VTBL struct ITabExplorerBHOVtbl *lpVtbl;
     };
 
     
@@ -177,26 +177,26 @@ EXTERN_C const IID IID_IBandObject;
 #ifdef COBJMACROS
 
 
-#define IBandObject_QueryInterface(This,riid,ppvObject)	\
+#define ITabExplorerBHO_QueryInterface(This,riid,ppvObject)	\
     ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
-#define IBandObject_AddRef(This)	\
+#define ITabExplorerBHO_AddRef(This)	\
     ( (This)->lpVtbl -> AddRef(This) ) 
 
-#define IBandObject_Release(This)	\
+#define ITabExplorerBHO_Release(This)	\
     ( (This)->lpVtbl -> Release(This) ) 
 
 
-#define IBandObject_GetTypeInfoCount(This,pctinfo)	\
+#define ITabExplorerBHO_GetTypeInfoCount(This,pctinfo)	\
     ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
-#define IBandObject_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
+#define ITabExplorerBHO_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
     ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
-#define IBandObject_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
+#define ITabExplorerBHO_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
     ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
-#define IBandObject_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
+#define ITabExplorerBHO_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
     ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
@@ -208,22 +208,22 @@ EXTERN_C const IID IID_IBandObject;
 
 
 
-#endif 	/* __IBandObject_INTERFACE_DEFINED__ */
+#endif 	/* __ITabExplorerBHO_INTERFACE_DEFINED__ */
 
 
-#ifndef __ISimpleShlExt_INTERFACE_DEFINED__
-#define __ISimpleShlExt_INTERFACE_DEFINED__
+#ifndef __ITabbarBand_INTERFACE_DEFINED__
+#define __ITabbarBand_INTERFACE_DEFINED__
 
-/* interface ISimpleShlExt */
-/* [unique][helpstring][dual][uuid][object] */ 
+/* interface ITabbarBand */
+/* [unique][helpstring][nonextensible][dual][uuid][object] */ 
 
 
-EXTERN_C const IID IID_ISimpleShlExt;
+EXTERN_C const IID IID_ITabbarBand;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
     
-    MIDL_INTERFACE("2A0D8430-F0ED-4103-B627-666763B6F80F")
-    ISimpleShlExt : public IDispatch
+    MIDL_INTERFACE("931743A6-9BAF-420C-9CF6-78459D9F7720")
+    ITabbarBand : public IDispatch
     {
     public:
     };
@@ -231,34 +231,34 @@ EXTERN_C const IID IID_ISimpleShlExt;
     
 #else 	/* C style interface */
 
-    typedef struct ISimpleShlExtVtbl
+    typedef struct ITabbarBandVtbl
     {
         BEGIN_INTERFACE
         
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
-            ISimpleShlExt * This,
+            ITabbarBand * This,
             /* [in] */ REFIID riid,
             /* [annotation][iid_is][out] */ 
             _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
-            ISimpleShlExt * This);
+            ITabbarBand * This);
         
         ULONG ( STDMETHODCALLTYPE *Release )( 
-            ISimpleShlExt * This);
+            ITabbarBand * This);
         
         HRESULT ( STDMETHODCALLTYPE *GetTypeInfoCount )( 
-            ISimpleShlExt * This,
+            ITabbarBand * This,
             /* [out] */ UINT *pctinfo);
         
         HRESULT ( STDMETHODCALLTYPE *GetTypeInfo )( 
-            ISimpleShlExt * This,
+            ITabbarBand * This,
             /* [in] */ UINT iTInfo,
             /* [in] */ LCID lcid,
             /* [out] */ ITypeInfo **ppTInfo);
         
         HRESULT ( STDMETHODCALLTYPE *GetIDsOfNames )( 
-            ISimpleShlExt * This,
+            ITabbarBand * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
             /* [range][in] */ UINT cNames,
@@ -266,7 +266,7 @@ EXTERN_C const IID IID_ISimpleShlExt;
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
-            ISimpleShlExt * This,
+            ITabbarBand * This,
             /* [annotation][in] */ 
             _In_  DISPID dispIdMember,
             /* [annotation][in] */ 
@@ -285,11 +285,11 @@ EXTERN_C const IID IID_ISimpleShlExt;
             _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
-    } ISimpleShlExtVtbl;
+    } ITabbarBandVtbl;
 
-    interface ISimpleShlExt
+    interface ITabbarBand
     {
-        CONST_VTBL struct ISimpleShlExtVtbl *lpVtbl;
+        CONST_VTBL struct ITabbarBandVtbl *lpVtbl;
     };
 
     
@@ -297,26 +297,26 @@ EXTERN_C const IID IID_ISimpleShlExt;
 #ifdef COBJMACROS
 
 
-#define ISimpleShlExt_QueryInterface(This,riid,ppvObject)	\
+#define ITabbarBand_QueryInterface(This,riid,ppvObject)	\
     ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
-#define ISimpleShlExt_AddRef(This)	\
+#define ITabbarBand_AddRef(This)	\
     ( (This)->lpVtbl -> AddRef(This) ) 
 
-#define ISimpleShlExt_Release(This)	\
+#define ITabbarBand_Release(This)	\
     ( (This)->lpVtbl -> Release(This) ) 
 
 
-#define ISimpleShlExt_GetTypeInfoCount(This,pctinfo)	\
+#define ITabbarBand_GetTypeInfoCount(This,pctinfo)	\
     ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
-#define ISimpleShlExt_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
+#define ITabbarBand_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
     ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
-#define ISimpleShlExt_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
+#define ITabbarBand_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
     ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
-#define ISimpleShlExt_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
+#define ITabbarBand_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
     ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
@@ -328,35 +328,35 @@ EXTERN_C const IID IID_ISimpleShlExt;
 
 
 
-#endif 	/* __ISimpleShlExt_INTERFACE_DEFINED__ */
+#endif 	/* __ITabbarBand_INTERFACE_DEFINED__ */
 
 
 
-#ifndef __SIMPLEEXTLib_LIBRARY_DEFINED__
-#define __SIMPLEEXTLib_LIBRARY_DEFINED__
+#ifndef __TabExplorerLib_LIBRARY_DEFINED__
+#define __TabExplorerLib_LIBRARY_DEFINED__
 
-/* library SIMPLEEXTLib */
-/* [helpstring][version][uuid] */ 
+/* library TabExplorerLib */
+/* [version][uuid] */ 
 
 
-EXTERN_C const IID LIBID_SIMPLEEXTLib;
+EXTERN_C const IID LIBID_TabExplorerLib;
 
-EXTERN_C const CLSID CLSID_BandObject;
-
-#ifdef __cplusplus
-
-class DECLSPEC_UUID("56419827-78E0-43ED-9E20-2B6B1C7AF534")
-BandObject;
-#endif
-
-EXTERN_C const CLSID CLSID_SimpleShlExt;
+EXTERN_C const CLSID CLSID_TabExplorerBHO;
 
 #ifdef __cplusplus
 
-class DECLSPEC_UUID("9FD4B86D-2BB8-423d-ACB0-E6D1C9A7B47D")
-SimpleShlExt;
+class DECLSPEC_UUID("70AF1B13-ACC5-4108-909D-514D3EA15C88")
+TabExplorerBHO;
 #endif
-#endif /* __SIMPLEEXTLib_LIBRARY_DEFINED__ */
+
+EXTERN_C const CLSID CLSID_TabbarBand;
+
+#ifdef __cplusplus
+
+class DECLSPEC_UUID("C43B8324-773C-4CFF-8676-5DA1C2CEC6BB")
+TabbarBand;
+#endif
+#endif /* __TabExplorerLib_LIBRARY_DEFINED__ */
 
 /* Additional Prototypes for ALL interfaces */
 

@@ -1,0 +1,59 @@
+HKCR
+{
+	TabExplorer.TabbarBand.1 = s 'TabbarBand Class'
+	{
+		CLSID = s '{C43B8324-773C-4CFF-8676-5DA1C2CEC6BB}'
+	}
+	TabExplorer.TabbarBand = s 'TabbarBand Class'
+	{
+		CLSID = s '{C43B8324-773C-4CFF-8676-5DA1C2CEC6BB}'
+		CurVer = s 'TabExplorer.TabbarBand.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {C43B8324-773C-4CFF-8676-5DA1C2CEC6BB} = s 'Tab Explorer Bar'
+		{
+			ProgID = s 'TabExplorer.TabbarBand.1'
+			VersionIndependentProgID = s 'TabExplorer.TabbarBand'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			'TypeLib' = s '{3fc345a8-4fda-4fb7-8762-50de64a370fe}'
+		}
+	}
+}
+
+HKLM
+{
+	NoRemove Software
+	{
+		NoRemove Microsoft
+		{
+			NoRemove 'Internet Explorer'
+			{
+				NoRemove Toolbar
+				{
+					ForceRemove	val {C43B8324-773C-4CFF-8676-5DA1C2CEC6BB} = b ''
+				}
+			}
+            NoRemove Windows
+			{
+				NoRemove CurrentVersion
+				{
+					NoRemove Policies
+					{
+						NoRemove Ext
+						{
+							NoRemove CLSID
+							{
+								ForceRemove	val {C43B8324-773C-4CFF-8676-5DA1C2CEC6BB} = s '2'
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
