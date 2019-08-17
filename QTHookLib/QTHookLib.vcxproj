@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -169,13 +169,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CComPtr.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\MinHook\libMinHook.vcxproj">
-      <Project>{65021938-d251-46fa-bc3d-85c385d4c06d}</Project>
-      <Properties>Platform=$(Platform)</Properties>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
