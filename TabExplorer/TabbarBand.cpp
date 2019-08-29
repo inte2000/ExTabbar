@@ -6,12 +6,18 @@
 #include "resource.h"
 //#include "ExplorerBHO.h"
 #include "SystemFunctions.h"
+#include "ShellFunctions.h"
 #include "dllmain.h"
+#include "DebugLog.h"
+#include "HookLibManager.h"
+#include "ShellGuids.h"
+#include "GuidEx.h"
 
 // CTarbarBand - adds a tabbar band to Windows Explorer with
 
 CTabbarBand::CTabbarBand( void )
 {
+    m_IsShown = false;
 }
 
 // IDeskBand
@@ -19,6 +25,7 @@ STDMETHODIMP CTabbarBand::GetBandInfo( DWORD dwBandID, DWORD dwViewMode, DESKBAN
 {
     RECT rc = { 0, 0, 0, 0};
     m_BandWindow.GetBarWndRect(rc);
+    LogInfo(_T("CTabbarBand::GetBandInfo(left:%d, top:%d, right:%d, bottom:%d)"), rc.left, rc.top, rc.right, rc.bottom);
 	if (pdbi)
 	{
 		if (pdbi->dwMask&DBIM_MINSIZE)
@@ -59,8 +66,9 @@ STDMETHODIMP CTabbarBand::GetWindow( HWND* phwnd )
 {
 	if (!phwnd)
 		return E_INVALIDARG;
-	*phwnd = m_BandWindow.GetToolbar();
-	return S_OK;
+	//*phwnd = m_BandWindow.GetToolbar();
+    *phwnd = m_BandWindow.m_hWnd;
+    return S_OK;
 }
 
 STDMETHODIMP CTabbarBand::ContextSensitiveHelp( BOOL fEnterMode )
@@ -71,7 +79,9 @@ STDMETHODIMP CTabbarBand::ContextSensitiveHelp( BOOL fEnterMode )
 // IDockingWindow
 STDMETHODIMP CTabbarBand::CloseDW( unsigned long dwReserved )
 {
-	ShowDW(FALSE);
+    LogTrace(_T("CTabbarBand::CloseDW()"));
+    m_BandWindow.ShowBarWnd(FALSE);
+    //ShowDW(FALSE);
 	return S_OK;
 }
 
@@ -83,11 +93,12 @@ STDMETHODIMP CTabbarBand::ResizeBorderDW( const RECT* prcBorder, IUnknown* punkT
 
 STDMETHODIMP CTabbarBand::ShowDW( BOOL fShow )
 {
+    LogTrace(_T("CTabbarBand::ShowDW(fShow = %d)"), fShow);
     // on Windows 7 get the current RBBS_BREAK state and save it in the registry to be restored later
     m_BandWindow.SaveRebarBreakState();
 
-    ShowWindow(m_BandWindow.GetToolbar(),fShow?SW_SHOW:SW_HIDE);
-	return S_OK;
+    m_BandWindow.ShowBarWnd(TRUE);
+    return S_OK;
 }
 
 // IObjectWithSite
@@ -95,6 +106,7 @@ STDMETHODIMP CTabbarBand::SetSite( IUnknown* pUnkSite )
 {
     HRESULT hr;
 
+    LogTrace(_T("CTabbarBand::SetSite(%p)"), pUnkSite);
     IObjectWithSiteImpl<CTabbarBand>::SetSite(pUnkSite);
 
     m_BandWindow.DestroyBarWnd();
@@ -113,8 +125,7 @@ STDMETHODIMP CTabbarBand::SetSite( IUnknown* pUnkSite )
         CComQIPtr<IServiceProvider> pProvider = pUnkSite;
         if (pProvider)
         {
-            CComPtr<IShellBrowser> pBrowser;
-            pProvider->QueryService(SID_SShellBrowser, IID_IShellBrowser, (void**)& pBrowser);
+            pProvider->QueryService(SID_SShellBrowser, IID_IShellBrowser, (void**)& m_spShellBrowser);
 
             //Get the parent window.
             HWND hWndParent = NULL;
@@ -137,25 +148,52 @@ STDMETHODIMP CTabbarBand::SetSite( IUnknown* pUnkSite )
             if (m_pWebBrowser == NULL)
                 return E_FAIL;
 
+            GetHookMgmt().InitShellBrowserHook((IShellBrowser*)m_spShellBrowser);
+            
+            CGuidEx guid3(strIID_ITravelLogStg);
+            CGuidEx guid4(strIID_ITravelLogStg);
+            hr = pProvider->QueryService(guid3, guid4, (void**)& m_spTravelLog);
+
             if (m_dwEventCookie == 0xFEFEFEFE) // ATL's event cookie is 0xFEFEFEFE when the sink is not advised
                 DispEventAdvise(m_pWebBrowser, &DIID_DWebBrowserEvents2);
 
-            m_BandWindow.OnAttachExplorer(pBrowser, m_pWebBrowser);
+            m_BandWindow.OnAttachExplorer(m_spShellBrowser, m_pWebBrowser);
         }
 	}
 	return S_OK;
 }
 
-STDMETHODIMP CTabbarBand::OnNavigateComplete( IDispatch *pDisp, VARIANT *URL )
+STDMETHODIMP CTabbarBand::OnBeforeNavigate2(IDispatch* pDisp, VARIANT* URL, VARIANT* Flags, VARIANT* TargetFrameName, VARIANT* PostData, VARIANT* Headers, VARIANT_BOOL* Cancel)
 {
-	// this is called when the current folder changes. disable the Up button if this is the desktop folder
+    TString strUrl = StringFromVariant(URL);
+
+    if (!m_IsShown)
+    {
+        DoFirstNavigation(true, strUrl);
+    }
+
+    return S_OK;
+}
+
+STDMETHODIMP CTabbarBand::OnNavigateComplete2( IDispatch *pDisp, VARIANT *URL )
+{
+    TString strUrl = StringFromVariant(URL);
+
+    if (!m_IsShown)
+    {
+        DoFirstNavigation(false, strUrl);
+    }
+
+
+    // this is called when the current folder changes. disable the Up button if this is the desktop folder
 	m_BandWindow.UpdateToolbar();
 	return S_OK;
 }
 
 STDMETHODIMP CTabbarBand::OnCommandStateChange( long Command, VARIANT_BOOL Enable )
 {
-	if (Command==CSC_NAVIGATEFORWARD)
+    LogTrace(_T("CTabbarBand::OnCommandStateChange(Command=%d)"), Command);
+    if (Command==CSC_NAVIGATEFORWARD)
 	{
 		SendMessage(m_BandWindow.GetToolbar(),TB_ENABLEBUTTON, ID_GOFORWARD,Enable?1:0);
 	}
@@ -168,8 +206,20 @@ STDMETHODIMP CTabbarBand::OnCommandStateChange( long Command, VARIANT_BOOL Enabl
 
 STDMETHODIMP CTabbarBand::OnQuit( void )
 {
-	if (m_pWebBrowser && m_dwEventCookie!=0xFEFEFEFE) // ATL's event cookie is 0xFEFEFEFE, when the sink is not advised
+    LogTrace(_T("CTabbarBand::OnQuit()"));
+    if (m_pWebBrowser && m_dwEventCookie!=0xFEFEFEFE) // ATL's event cookie is 0xFEFEFEFE, when the sink is not advised
 		return DispEventUnadvise(m_pWebBrowser,&DIID_DWebBrowserEvents2);
 	
     return S_OK;
 }
+
+void CTabbarBand::DoFirstNavigation(bool before, const TString& path)
+{
+    CIDLEx cidl;
+    cidl.Set(path.c_str());
+    m_BandWindow.AddNewTab(path, cidl);
+}
+/*
+LPITEMIDLIST pidl = ::ILCreateFromPath(PCTSTR pszPath);
+::ILFree(pidl);
+*/

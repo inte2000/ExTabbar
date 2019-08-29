@@ -8,6 +8,7 @@
 #include <dwmapi.h>
 #include <Ntquery.h>
 #include "SystemFunctions.h"
+#include "DebugLog.h"
 
 //global options
 BOOL g_bHideRapidAccess = TRUE; //隐藏快速访问节点
@@ -101,7 +102,8 @@ static LRESULT CALLBACK SubclassTreeProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 
 		if (g_bTreeViewAutoScroll)
 		{
-			SetWindowTheme(hWnd,NULL,NULL);
+            LogInfo(_T("ExplorerWindow hack treeview TVM_SETEXTENDEDSTYLE message"));
+            SetWindowTheme(hWnd,NULL,NULL);
 			DWORD style=GetWindowLong(hWnd,GWL_STYLE);
 			style&=~TVS_NOHSCROLL;
 			if (g_bTreeViewSimpleMode)
@@ -155,9 +157,10 @@ LRESULT CALLBACK CExplorerWindow::SubclassStatusProc( HWND hWnd, UINT uMsg, WPAR
 
 		if (dwRefData&SPACE_WIN7)
 		{
-			if (((CExplorerWindow*)uIdSubclass)->m_bResetStatus && SendMessage(hWnd,SB_GETPARTS,0,0)<=1)
+            if (((CExplorerWindow*)uIdSubclass)->m_bResetStatus && SendMessage(hWnd,SB_GETPARTS,0,0)<=1)
 			{
-				// HACK! there is a bug in Win7 and when the Explorer window is created it doesn't correctly
+                LogInfo(_T("ExplorerWindow hack statusbar space for win 7"));
+                // HACK! there is a bug in Win7 and when the Explorer window is created it doesn't correctly
 				// initialize the status bar to have 3 parts. as soon as the user resizes the window the
 				// 3 parts appear. so here we resize the parent of the status bar to create the 3 parts.
 				HWND parent=GetParent(hWnd);
@@ -170,6 +173,7 @@ LRESULT CALLBACK CExplorerWindow::SubclassStatusProc( HWND hWnd, UINT uMsg, WPAR
 					((CExplorerWindow*)uIdSubclass)->m_bResetStatus=false;
 			}
 
+            LogInfo(_T("ExplorerWindow hack statusbar calculate free space"));
 			// find the current folder and show the free space of the drive containing the current folder
 			// also works for network locations
 			IShellBrowser *pBrowser=((CExplorerWindow*)uIdSubclass)->m_spShellBrowser;
@@ -266,7 +270,8 @@ LRESULT CALLBACK CExplorerWindow::HookExplorer( int nCode, WPARAM wParam, LPARAM
 		CBT_CREATEWND *create=(CBT_CREATEWND*)lParam;
 		if (create->lpcs->lpszClass>(LPTSTR)0xFFFF && _wcsicmp(create->lpcs->lpszClass,WC_TREEVIEW)==0)
 		{
-			DWORD_PTR settings=0;
+            LogInfo(_T("ExplorerWindow treeview windows create hooked!"));
+            DWORD_PTR settings=0;
             
             if (IsWindows7() && g_bFixFolderScroll)
 				settings |= 1;
@@ -327,7 +332,8 @@ LRESULT CALLBACK CExplorerWindow::RebarSubclassProc( HWND hWnd, UINT uMsg, WPARA
 
 	if (uMsg==WM_THEMECHANGED)
 	{
-		// the button size is reset when the theme changes. force the correct size again
+        LogInfo(_T("ExplorerWindow rebar subclass got WM_THEMECHANGED message!"));
+        // the button size is reset when the theme changes. force the correct size again
 		HWND toolbar=(HWND)dwRefData;
 		RECT rc;
 		GetClientRect(toolbar,&rc);
@@ -445,10 +451,12 @@ BOOL CExplorerWindow::AddUpButtonToExplorBar()
 {
     m_hExplorerWnd = NULL;
 
+    LogTrace(_T("ExplorerWindow AddUpButtonToExplorBar() invoked!"));
     if (m_spWebBrowser2 && (m_spWebBrowser2->get_HWND((LONG_PTR*)&m_hExplorerWnd) == S_OK))
     {
         // for win7, we find the TravelBand, the rebar and the toolbar. win10 has UpBand, do the same things
         HWND hTravelBand = hTravelBand = FindChildWindow(m_hExplorerWnd, L"TravelBand");;
+        LogInfo(_T("ExplorerWindow find hTravelBand = 0x%08x!"), hTravelBand);
         if (hTravelBand)
         {
             HWND toolbar = FindWindowEx(hTravelBand, NULL, TOOLBARCLASSNAME, NULL);
@@ -501,6 +509,7 @@ BOOL CExplorerWindow::AddUpButtonToExplorBar()
             SendMessage(rebar, RB_INSERTBAND, 1, (LPARAM)& info);
             RedrawWindow(rebar, NULL, NULL, RDW_UPDATENOW | RDW_ALLCHILDREN);
 
+            LogInfo(_T("ExplorerWindow create up button toolbar success!"));
             return TRUE;
         }
     }
@@ -510,6 +519,7 @@ BOOL CExplorerWindow::AddUpButtonToExplorBar()
 
 void CExplorerWindow::RemoveUpButtonFromExplorBar()
 {
+    LogTrace(_T("ExplorerWindow RemoveUpButtonFromExplorBar() invoked!"));
     if (m_hExplorerWnd != NULL)
     {
         HWND hTravelBand = hTravelBand = FindChildWindow(m_hExplorerWnd, L"TravelBand");;
@@ -546,16 +556,18 @@ void CExplorerWindow::RemoveUpButtonFromExplorBar()
     }
 }
 
-
 BOOL CExplorerWindow::SubclassStatusBar()
 {
     HWND hStatusbar;
+    LogTrace(_T("ExplorerWindow SubclassStatusBar() invoked!"));
     if (m_spShellBrowser && SUCCEEDED(m_spShellBrowser->GetControlWindow(FCW_STATUS, &hStatusbar)))
     {
         bool bWin7 = IsWindows7() ? true : false;
         DWORD FreeSpace = SPACE_SHOW | SPACE_TOTAL; // always show total
         if (bWin7)
             FreeSpace |= SPACE_WIN7;
+        
+        LogInfo(_T("ExplorerWindow SubclassStatusBar() subclass statusbar with FreeSpace=%x!"), FreeSpace);
         SetWindowSubclass(hStatusbar, SubclassStatusProc, (UINT_PTR)this, FreeSpace);
         m_bForceRefresh = (bWin7 && g_bForceRefreshWin7);
 
@@ -570,6 +582,7 @@ BOOL CExplorerWindow::HookExplorer()
     // hook
     if (!s_Hook)
     {
+        LogTrace(_T("ExplorerWindow HookExplorer() set explorer WH_CBT hook!"));
         s_Hook = SetWindowsHookEx(WH_CBT, HookExplorer, NULL, GetCurrentThreadId());
     }
 
@@ -581,6 +594,7 @@ void CExplorerWindow::UnhookExplorer()
     // unhook
     if (s_Hook)
     {
+        LogTrace(_T("ExplorerWindow UnhookExplorer() remove explorer WH_CBT hook!"));
         UnhookWindowsHookEx(s_Hook);
         s_Hook = NULL;
     }

@@ -7,8 +7,6 @@
 #include "TabExplorer_i.h"
 #include "TabbarBandWindow.h"  
 
-
-
 // CTabbarBand
 
 class ATL_NO_VTABLE CTabbarBand :
@@ -24,7 +22,8 @@ public:
 	DECLARE_REGISTRY_RESOURCEID(IDR_TABBARBAND)
 
 	BEGIN_SINK_MAP(CTabbarBand)
-		SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete)
+		SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, OnBeforeNavigate2)
+		SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete2)
 		SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_COMMANDSTATECHANGE, OnCommandStateChange)
 		SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_ONQUIT, OnQuit)
 	END_SINK_MAP()
@@ -67,14 +66,22 @@ public:
 	STDMETHOD(ShowDW)( BOOL fShow );
 
 	// DWebBrowserEvents2
-	STDMETHOD(OnNavigateComplete)( IDispatch *pDisp, VARIANT *URL );
+	STDMETHOD(OnBeforeNavigate2)( IDispatch *pDisp, VARIANT *URL, VARIANT* Flags, VARIANT* TargetFrameName, VARIANT* PostData, VARIANT* Headers, VARIANT_BOOL* Cancel);
+	STDMETHOD(OnNavigateComplete2)( IDispatch *pDisp, VARIANT *URL );
 	STDMETHOD(OnCommandStateChange)( long Command, VARIANT_BOOL Enable );
 	STDMETHOD(OnQuit)( void );
 
 protected:
+    void DoFirstNavigation(bool before, const TString& path);
+
+protected:
     CTabbarBandWindow m_BandWindow;
+    CComPtr<IShellBrowser> m_spShellBrowser;
 	CComPtr<IWebBrowser2> m_pWebBrowser;
     CComPtr<IInputObjectSite> m_spBandObjectSite;
+    CComPtr<ITravelLogStg> m_spTravelLog;
+
+    bool m_IsShown;
 
 };
 

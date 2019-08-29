@@ -21,8 +21,17 @@
 #include <atlctl.h>
 #include <atlconv.h>
 #include <atlstr.h>
+#include <atlcoll.h>
+
+#define _WTL_NO_CSTRING 
 
 using namespace ATL;
+
+#include <atlapp.h>
+#include <atlctrls.h>
+#include <atlmisc.h>
+#include <atlcrack.h>
+
 
 #include <shobjidl.h>
 #include <exdispid.h>
@@ -30,6 +39,7 @@ using namespace ATL;
 #include <shlobj.h>
 #include <Shldisp.h>
 #include <comdef.h>
+#include <Tlogstg.h>
 
 #include <windows.h>
 #include <VersionHelpers.h>

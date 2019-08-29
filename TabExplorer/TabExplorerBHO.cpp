@@ -8,6 +8,7 @@
 #include <dwmapi.h>
 #include <Ntquery.h>
 #include "SystemFunctions.h"
+#include "DebugLog.h"
 
 
 // CTabExplorerBHO - a browser helper object that implements Alt+Enter for the folder tree
@@ -16,6 +17,8 @@ HRESULT STDMETHODCALLTYPE CTabExplorerBHO::SetSite( IUnknown *pUnkSite )
 {
     //HRESULT hr;
     
+    LogTrace(_T("TabExplorerBHO SetSite(%p) invoked"), pUnkSite);
+
     IObjectWithSiteImpl<CTabExplorerBHO>::SetSite(pUnkSite);
 	if (pUnkSite)
 	{
@@ -72,6 +75,8 @@ STDMETHODIMP CTabExplorerBHO::OnNavigateComplete( IDispatch *pDisp, VARIANT *URL
 STDMETHODIMP CTabExplorerBHO::OnQuit( void )
 {
     HRESULT hr = S_OK;
+
+    LogTrace(_T("TabExplorerBHO OnQuit() invoked"));
     if (m_spWebBrowser2 && m_dwEventCookie != 0xFEFEFEFE) // ATL's event cookie is 0xFEFEFEFE, when the sink is not advised
     {
         hr = DispEventUnadvise(m_spWebBrowser2, &DIID_DWebBrowserEvents2);

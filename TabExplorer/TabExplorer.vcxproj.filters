@@ -17,6 +17,12 @@
       <UniqueIdentifier>{11283e43-8e5c-4c18-976b-5cede29ff4a2}</UniqueIdentifier>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{0bb35788-a52f-49f5-ab35-33cd34e9da55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{c96b06a3-b6db-4f40-a39f-c3ae5760c556}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -46,9 +52,6 @@
     <ClInclude Include="log_inc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SystemFunctions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TabExplorerBHO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -60,6 +63,45 @@
     </ClInclude>
     <ClInclude Include="TabbarBandWindow.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WspFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ui\TeTabctrl.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ui\MemDC.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ui\atlgdix.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ui\CustomTabCtrl.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ui\DotNetTabCtrl.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ShellFunctions.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ShellBrowserEx.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\GuidEx.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\SystemFolders.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\SystemFunctions.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ShellWrapper.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ShellGuids.h">
+      <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -81,9 +123,6 @@
     <ClCompile Include="HookLibManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SystemFunctions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TabExplorerBHO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -95,6 +134,30 @@
     </ClCompile>
     <ClCompile Include="TabbarBandWindow.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WspFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ShellFunctions.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ShellBrowserEx.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\GuidEx.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\SystemFolders.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\SystemFunctions.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ShellWrapper.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ShellGuids.cpp">
+      <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -120,5 +183,28 @@
     <Midl Include="TabExplorer.idl">
       <Filter>Source Files</Filter>
     </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\ClassicShell.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\up2Disabled.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\up2Hot.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\up2Normal.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\up2Pressed.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\up.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\upDisabled.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

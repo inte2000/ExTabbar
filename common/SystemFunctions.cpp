@@ -52,6 +52,11 @@ Windows 2.0 	2.11
 Windows 1.0 	1.04
 */
 
+BOOL IsWindowsXP()
+{
+    return IsWindowsVersionEqual(5, 1, 0);
+}
+
 BOOL IsWindows7()
 {
     return (IsWindowsVersionEqual(6, 1, 0) || IsWindowsVersionEqual(6, 1, 1));
@@ -257,4 +262,93 @@ BOOL IsLanguageRTL(void)
         return TRUE;
     
     return FALSE;
+}
+
+BOOL IsDirectoryExists(const TString& path)
+{
+    if (path.empty())
+        return FALSE;
+
+    if (path.find(_T("::"), 0) == 0)
+        return FALSE;
+
+    return ::PathFileExists(path.c_str());
+}
+
+BOOL IsFileExists(const TString& path) 
+{
+    if (path.empty())
+        return FALSE;
+
+    if (path.find(_T("::"), 0) == 0)
+        return FALSE;
+
+    return ::PathFileExists(path.c_str());
+}
+
+LPCTSTR  INDICATOR_FTP = _T("ftp://");
+LPCTSTR  INDICATOR_HTTP = _T("http://");
+LPCTSTR  INDICATOR_NAMESPACE = _T("::");
+LPCTSTR  INDICATOR_NETWORK = _T("\\\\");
+
+BOOL IsNetworkPath(const TString& path)
+{
+    if (path.empty())
+        return FALSE;
+
+    if ((path.find(INDICATOR_NETWORK, 0) == 0)
+        || (path.find(INDICATOR_HTTP, 0) == 0)
+        || (path.find(INDICATOR_FTP, 0) == 0))
+    {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+BOOL IsNamespacePath(const TString& path)
+{
+    if (path.empty())
+        return TRUE;
+
+    if (path.find(INDICATOR_NAMESPACE, 0) == 0)
+        return TRUE;
+
+    return FALSE;
+}
+
+BOOL IsDiskRootPath(const TString& path)
+{
+    std::size_t pos = path.find(_T(':'), 0);
+    if (pos >= 0)
+    {
+        if ((path.length() - pos) <= 2)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+TString GetTabItemText(const TString& path)
+{
+    TString text;
+    std::size_t rSlash = path.rfind(_T('\\'));
+    if (rSlash == TString::npos)
+    {
+        return path;
+    }
+
+    std::size_t pos = path.find(_T(':'), 0);
+    if (pos > 0)
+    {
+        text = path.substr(0, pos);
+        text += _T("...");
+        text += path.substr(rSlash + 1);
+    }
+    else
+    {
+        text = path.substr(rSlash + 1);
+    }
+
+    return std::move(text);
 }
