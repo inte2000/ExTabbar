@@ -19,17 +19,6 @@ interface ITabExplorerBHO : IDispatch
 {
 };
 
-[
-    object,
-    uuid(931743A6-9BAF-420C-9CF6-78459D9F7720),
-    dual,
-    nonextensible,
-    helpstring("ITabbarBand Interface"),
-    pointer_default(unique)
-]
-interface ITabbarBand : IDispatch
-{
-};
 
 [
 	uuid(3fc345a8-4fda-4fb7-8762-50de64a370fe),
@@ -49,13 +38,5 @@ library TabExplorerLib
         [default] interface ITabExplorerBHO;
     };
 
-    [
-        uuid(C43B8324-773C-4CFF-8676-5DA1C2CEC6BB),
-        helpstring("TabbarBand Class")
-    ]
-    coclass TabbarBand
-    {
-        [default] interface ITabbarBand;
-    };
 
 };

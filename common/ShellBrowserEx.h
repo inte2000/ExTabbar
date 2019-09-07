@@ -22,6 +22,7 @@ public:
     CIDLEx GetItem(int idx, bool noAppend = false);
     int GetItemCount();
     HRESULT GetItems(std::vector<CIDLEx *>& items, bool selectedOnly = false, bool noAppend = false);
+    HRESULT GetSelectedItems(std::vector<CIDLEx*>& items, bool noAppend = false) { return GetItems(items, true, noAppend); }
     int GetSelectedCount();
     CIDLEx ILAppend(LPITEMIDLIST pidl);
 

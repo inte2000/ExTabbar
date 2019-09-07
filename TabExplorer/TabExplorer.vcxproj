@@ -238,10 +238,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\DebugLog.h" />
     <ClInclude Include="..\common\GuidEx.h" />
+    <ClInclude Include="..\common\HookLibManager.h" />
+    <ClInclude Include="..\common\NavigatedPoint.h" />
+    <ClInclude Include="..\common\PrivateMessage.h" />
     <ClInclude Include="..\common\ShellBrowserEx.h" />
     <ClInclude Include="..\common\ShellFunctions.h" />
     <ClInclude Include="..\common\ShellGuids.h" />
+    <ClInclude Include="..\common\ShellTabItem.h" />
     <ClInclude Include="..\common\ShellWrapper.h" />
     <ClInclude Include="..\common\SystemFolders.h" />
     <ClInclude Include="..\common\SystemFunctions.h" />
@@ -249,31 +254,39 @@
     <ClInclude Include="..\ui\CustomTabCtrl.h" />
     <ClInclude Include="..\ui\DotNetTabCtrl.h" />
     <ClInclude Include="..\ui\MemDC.h" />
-    <ClInclude Include="..\ui\TeTabctrl.h" />
-    <ClInclude Include="DebugLog.h" />
+    <ClInclude Include="AddressBar.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="ExplorerWindow.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="HookLibManager.h" />
+    <ClInclude Include="LeftTreeView.h" />
     <ClInclude Include="log_inc.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="TabbarBand.h" />
-    <ClInclude Include="TabbarBandWindow.h" />
+    <ClInclude Include="ShellTabWindow.h" />
+    <ClInclude Include="StatusBar.h" />
+    <ClInclude Include="TabbarWindow.h" />
     <ClInclude Include="TabExplorerBHO.h" />
     <ClInclude Include="TabExplorer_i.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TeTabctrl.h" />
+    <ClInclude Include="TravelBand.h" />
     <ClInclude Include="WspFunctions.h" />
+    <ClInclude Include="WzToolbar.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\DebugLog.cpp" />
     <ClCompile Include="..\common\GuidEx.cpp" />
+    <ClCompile Include="..\common\HookLibManager.cpp" />
+    <ClCompile Include="..\common\NavigatedPoint.cpp" />
+    <ClCompile Include="..\common\PrivateMessage.cpp" />
     <ClCompile Include="..\common\ShellBrowserEx.cpp" />
     <ClCompile Include="..\common\ShellFunctions.cpp" />
     <ClCompile Include="..\common\ShellGuids.cpp" />
+    <ClCompile Include="..\common\ShellTabItem.cpp" />
     <ClCompile Include="..\common\ShellWrapper.cpp" />
     <ClCompile Include="..\common\SystemFolders.cpp" />
     <ClCompile Include="..\common\SystemFunctions.cpp" />
-    <ClCompile Include="DebugLog.cpp" />
+    <ClCompile Include="AddressBar.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
@@ -289,15 +302,16 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ExplorerWindow.cpp" />
-    <ClCompile Include="HookLibManager.cpp" />
+    <ClCompile Include="LeftTreeView.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="TabbarBand.cpp" />
-    <ClCompile Include="TabbarBandWindow.cpp" />
+    <ClCompile Include="ShellTabWindow.cpp" />
+    <ClCompile Include="StatusBar.cpp" />
+    <ClCompile Include="TabbarWindow.cpp" />
     <ClCompile Include="TabExplorer.cpp" />
     <ClCompile Include="TabExplorerBHO.cpp" />
     <ClCompile Include="TabExplorer_i.c">
@@ -314,7 +328,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TeTabctrl.cpp" />
+    <ClCompile Include="TravelBand.cpp" />
     <ClCompile Include="WspFunctions.cpp" />
+    <ClCompile Include="WzToolbar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TabExplorer.rc" />

@@ -7,7 +7,8 @@
 #include "ShellGuids.h"
 #include "GuidEx.h"
 #include "ShellBrowserEx.h"
-#include "TabbarBandWindow.h"
+#include "TabbarWindow.h"
+#include "ShellTabItem.h"
 
 
 BOOL g_bUsingLargeButton = FALSE;
@@ -22,7 +23,6 @@ BOOL g_bTabNewButton = TRUE;
 BOOL g_bTabCloseButton = TRUE;
 BOOL g_bTabAutoHideButtons = TRUE;
 BOOL g_bForceSysListView = TRUE;
-BOOL g_bNoWindowResizing = FALSE;
 
 // CTabbarBandWindow - the parent window of the toolbar
 struct StdToolbarItem
@@ -36,17 +36,12 @@ struct StdToolbarItem
 
 static StdToolbarItem s_StdItems[] = 
 {
+    {L"NewTab", ID_NEW_TAB, true, 46, L"New Tab"},
     {L"GoUp", ID_GOUP, true, 46, L"Up One Level"},
-    {L"Cut", ID_CUT, true, 16762, NULL},
-    {L"Copy", ID_COPY, true, 243, NULL},
-    {L"Paste", ID_PASTE, true, 16763, NULL},
-    {L"Delete", ID_DELETE, true, 240, L"Toolbar.Delete"},
-    {L"Properties", ID_PROPERTIES, true, 253, L"Toolbar.Properties"},
-    {L"E-mail the selected items", ID_EMAIL, true, 265, L"Toolbar.Email"},
     {L"Settings", ID_SETTINGS, true, 210, L"Toolbar.Settings"}
 };
 
-CTabbarBandWindow::CTabbarBandWindow() 
+CTabbarWindow::CTabbarWindow()
 { 
     m_bSubclassRebar = IsWindows7(); // Windows 7
     m_bSubclassedRebar = false;
@@ -54,21 +49,10 @@ CTabbarBandWindow::CTabbarBandWindow()
     m_imgDisabled = NULL;
 }
 
-BOOL CTabbarBandWindow::OnAttachExplorer(CComPtr<IShellBrowser>& spShellBrowser, CComPtr<IWebBrowser2>& spWebBrowser)
+BOOL CTabbarWindow::Initialize(CComPtr<IShellBrowser>& spShellBrowser, HWND hExplorerWnd)
 {
     m_pBrowser = spShellBrowser;
-    m_spWebBrowser = spWebBrowser;
-
-    HRESULT hr = m_spWebBrowser->get_HWND((LONG_PTR*)& m_hExplorerWnd);
-    if (hr != S_OK)
-        return FALSE;
-
-    if (g_bNoWindowResizing)
-    {
-        LONG_PTR dwStyle = ::GetWindowLongPtr(m_hExplorerWnd, GWL_STYLE);
-        dwStyle &= ~WS_SIZEBOX;
-        ::SetWindowLongPtr(m_hExplorerWnd, GWL_STYLE, dwStyle);
-    }
+    m_hExplorerWnd = hExplorerWnd;
 
     m_ShellBrowser.SetIShellBrowser(spShellBrowser);
     if (g_bForceSysListView)
@@ -76,16 +60,23 @@ BOOL CTabbarBandWindow::OnAttachExplorer(CComPtr<IShellBrowser>& spShellBrowser,
         m_ShellBrowser.SetUsingListView(true);
     }
 
+    if (!CreateBarWnd(hExplorerWnd))
+    {
+        return FALSE;
+    }
+
+    SetWindowPos(::GetWindow(m_hExplorerWnd, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
     return TRUE;
 }
 
-void CTabbarBandWindow::OnDetachExplorer()
+void CTabbarWindow::Unintialize()
 {
+    DestroyBarWnd();
     m_pBrowser.Release();
-    m_spWebBrowser.Release();
 }
 
-BOOL CTabbarBandWindow::CreateToolbarWnd()
+BOOL CTabbarWindow::CreateToolbarWnd()
 {
     // create buttons
     int iconCount = sizeof(s_StdItems) / sizeof(s_StdItems[0]);
@@ -114,6 +105,32 @@ BOOL CTabbarBandWindow::CreateToolbarWnd()
         }
     }
 
+    DWORD dwStyle = WS_CHILD | TBSTYLE_CUSTOMERASE | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE;// | TBSTYLE_TRANSPARENT;
+    if (!g_bToolbarListMode)
+        m_Toolbar.Create(m_hWnd, NULL, NULL, dwStyle, TBSTYLE_EX_MIXEDBUTTONS);
+    else
+        m_Toolbar.Create(m_hWnd, NULL, NULL, dwStyle | TBSTYLE_LIST, TBSTYLE_EX_MIXEDBUTTONS);
+
+    if (!m_Toolbar.IsWindow())
+        return FALSE;
+
+    m_Toolbar.SetButtonStructSize(sizeof(TBBUTTON));
+    m_Toolbar.SetMaxTextRows(1);
+
+    LogInfo(_T("CTabbarBandWindow create toolbar window = 0x%08x...!"), m_Toolbar.m_hWnd);
+
+    HIMAGELIST old = m_Toolbar.SetImageList(m_imgEnabled, 0);
+    if (old)
+        ImageList_Destroy(old);
+
+    old = m_Toolbar.SetDisabledImageList(m_imgDisabled, 0);
+    if (old)
+        ImageList_Destroy(old);
+
+    m_Toolbar.AddButtons((int)buttons.size(), &buttons[0]);
+    m_Toolbar.ShowWindow(SW_SHOW);
+
+#if 0
     // create the toolbar
     if (!g_bToolbarListMode)
         m_Toolbar = CreateWindow(TOOLBARCLASSNAME, L"", WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE, 0, 0, 10, 10, m_hWnd, (HMENU)101, g_Instance, NULL);
@@ -138,12 +155,14 @@ BOOL CTabbarBandWindow::CreateToolbarWnd()
         ImageList_Destroy(old);
     
     m_Toolbar.SendMessage(TB_ADDBUTTONS, buttons.size(), (LPARAM)& buttons[0]);
+    m_Toolbar.ShowWindow(SW_SHOW);
+#endif
     SendMessage(WM_CLEAR);
 
     return TRUE;
 }
 
-void CTabbarBandWindow::UpdateToolbar(void)
+void CTabbarWindow::UpdateToolbar(void)
 {
     // disable the Up button if we are at the top level
     bool bDesktop = false;
@@ -173,7 +192,7 @@ void CTabbarBandWindow::UpdateToolbar(void)
     m_Toolbar.SendMessage(TB_ENABLEBUTTON, ID_GOUP, bDesktop ? 0 : 1);
 }
 
-BOOL CTabbarBandWindow::CreateTabctrlWnd()
+BOOL CTabbarWindow::CreateTabctrlWnd()
 {
 /*
     DWORD dwTabStyles = 
@@ -204,7 +223,7 @@ BOOL CTabbarBandWindow::CreateTabctrlWnd()
     return TRUE;
 }
 
-BOOL CTabbarBandWindow::CreateBarWnd(HWND hParent)
+BOOL CTabbarWindow::CreateBarWnd(HWND hParent)
 {
     LogTrace(_T("CTabbarBandWindow::CreateBarWnd() invoked"));
     if (Create(hParent, NULL, NULL, WS_CHILD|WS_VISIBLE) != NULL)
@@ -215,7 +234,7 @@ BOOL CTabbarBandWindow::CreateBarWnd(HWND hParent)
     return FALSE;
 }
 
-void CTabbarBandWindow::DestroyBarWnd()
+void CTabbarWindow::DestroyBarWnd()
 {
     LogTrace(_T("CTabbarBandWindow::DestroyBarWnd() invoked"));
     if (m_bSubclassedRebar)
@@ -226,11 +245,9 @@ void CTabbarBandWindow::DestroyBarWnd()
 
     if (IsWindow())
         DestroyWindow();
-
-    OnDetachExplorer();
 }
 
-void CTabbarBandWindow::ShowBarWnd(BOOL bShow)
+void CTabbarWindow::ShowBarWnd(BOOL bShow)
 {
     //ShowWindow(m_BandWindow.GetToolbar(),fShow?SW_SHOW:SW_HIDE);
     RECT rc = { 0 };
@@ -240,7 +257,7 @@ void CTabbarBandWindow::ShowBarWnd(BOOL bShow)
     m_TabCtrl.ShowWindow(bShow ? SW_SHOW : SW_HIDE);
 }
 
-void CTabbarBandWindow::GetBarWndRect(RECT& rc)
+void CTabbarWindow::GetBarWndRect(RECT& rc)
 {
     // initializes the band
     if (m_bSubclassRebar && !m_bSubclassedRebar)
@@ -269,7 +286,7 @@ void CTabbarBandWindow::GetBarWndRect(RECT& rc)
     rc.bottom = g_nSmallIconSize ? 26 : 34;
 }
 
-void CTabbarBandWindow::SaveRebarBreakState()
+void CTabbarWindow::SaveRebarBreakState()
 {
     if (m_bSubclassedRebar)
     {
@@ -290,23 +307,84 @@ void CTabbarBandWindow::SaveRebarBreakState()
     }
 }
 
-BOOL CTabbarBandWindow::AddNewTab(const TString& path, const CIDLEx& cidl)
+void CTabbarWindow::MovePosition(const RECT& TabsRect)
 {
-    TString dispName, tipText;
-    if (IsNamespacePath(path) || IsDiskRootPath(path))
+    LogTrace(_T("CTabbarWnd::MovePosition(TabPos [left = %d, top = %d, right = %d, bottom = %d])"),
+        TabsRect.left, TabsRect.top, TabsRect.right, TabsRect.bottom);
+
+    ::SetWindowPos(m_hWnd, HWND_BOTTOM, TabsRect.left, TabsRect.top,
+            TabsRect.right - TabsRect.left, TabsRect.bottom - TabsRect.top, SWP_DRAWFRAME);
+    RedrawWindow();
+}
+
+BOOL CTabbarWindow::AddNewTab(const TString& path, const CIDLEx& cidl)
+{
+    //std::shared_ptr<CShellTabItem> psti = std::make_shared<CShellTabItem>();
+
+    CShellTabItem* psti = new CShellTabItem();
+    if (psti != nullptr)
     {
-        dispName = cidl.GetDisplayName();
-        tipText = dispName;
+        psti->NavigatedTo(path, cidl, -1, true);
+        int index = m_TabCtrl.InsertItem(0, psti->GetTitle().c_str(), 0, psti->GetTooltip().c_str());
+        if (index >= 0)
+        {
+            m_TabCtrl.SetItemData(index, (ULONG_PTR)psti);
+        }
     }
-    else
-    {
-        dispName = GetTabItemText(path);
-        tipText = path;
-    }
-    m_TabCtrl.InsertItem(0, dispName.c_str(), 0, tipText.c_str());
-    //m_TabCtrl.InsertItem(0, _T("second"), 0, _T("dsffdasdfdsf"));
 
     return TRUE;
+}
+
+BOOL CTabbarWindow::OnNavigateCurrentTab(bool bBack)
+{
+    int nItem = m_TabCtrl.GetCurSel();
+    if (nItem >= 0)
+    {
+        CShellTabItem* psti = (CShellTabItem*)m_TabCtrl.GetItemData(nItem);
+        ATLASSERT(psti != nullptr);
+        std::shared_ptr<CNavigatedPoint> curNp;
+        if (bBack)
+            psti->GoBackward(curNp);
+        else
+            psti->GoForward(curNp);
+
+        m_TabCtrl.SetItemInfo(nItem, -1, curNp->GetTitle().c_str(), curNp->GetTooltip().c_str());
+
+    }
+    return TRUE;
+}
+
+BOOL CTabbarWindow::OnBeforeNavigate(CIDLEx& target, bool bAutoNav)
+{
+    //CIDLEx focus = m_ShellBrowser.GetFocusedItem();
+    //std::vector<CIDLEx*> selectedItems;
+    //HRESULT hr = m_ShellBrowser.GetSelectedItems(selectedItems, false);
+
+    TString dispName = target.GetDisplayName();
+    int nItem = m_TabCtrl.GetCurSel();
+    if (nItem >= 0)
+    {
+        CShellTabItem* psti = (CShellTabItem*)m_TabCtrl.GetItemData(nItem);
+        ATLASSERT(psti != nullptr);
+    }
+
+    return TRUE;
+}
+
+void CTabbarWindow::OnNavigateComplete(const TString& strUrl)
+{
+    int nItem = m_TabCtrl.GetCurSel();
+    if (nItem >= 0)
+    {
+        CShellTabItem* psti = (CShellTabItem*)m_TabCtrl.GetItemData(nItem);
+        ATLASSERT(psti != nullptr);
+        if (psti->GetCureentPath().compare(strUrl) != 0)
+        {
+            psti->NavigatedTo(strUrl, CIDLEx(), 0, false);
+
+            m_TabCtrl.SetItemInfo(nItem, -1, psti->GetTitle().c_str(), psti->GetTooltip().c_str());
+        }
+    }
 }
 
 /*
@@ -320,7 +398,7 @@ private QTabItem CreateNewTab(IDLWrapper idlw) {
 }
 */
 
-int CTabbarBandWindow::GetToolbarIconSize()
+int CTabbarWindow::GetToolbarIconSize()
 {
     int iconSize = 0;
     if (g_bUsingLargeButton)
@@ -351,7 +429,7 @@ int CTabbarBandWindow::GetToolbarIconSize()
     return iconSize;
 }
 
-BOOL CTabbarBandWindow::InitToolbarImageList()
+BOOL CTabbarWindow::InitToolbarImageList()
 {
     int iconCount = sizeof(s_StdItems) / sizeof(s_StdItems[0]);
     int iconSize = GetToolbarIconSize();
@@ -392,7 +470,7 @@ BOOL CTabbarBandWindow::InitToolbarImageList()
     return TRUE;
 }
 
-void CTabbarBandWindow::ReleaseToolbarImageList()
+void CTabbarWindow::ReleaseToolbarImageList()
 {
     ImageList_Destroy(m_imgEnabled);
     m_imgEnabled = NULL;
@@ -400,7 +478,7 @@ void CTabbarBandWindow::ReleaseToolbarImageList()
     m_imgDisabled = NULL;
 }
 
-LRESULT CTabbarBandWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CTabbarWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     LogTrace(_T("CTabbarBandWindow::OnCreate() invoked"));
     if (!InitToolbarImageList())
@@ -426,11 +504,14 @@ LRESULT CTabbarBandWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOO
     return 0;
 }
 
-LRESULT CTabbarBandWindow::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CTabbarWindow::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     DWORD_PTR dwSizeType = wParam;      // resizing flag 
     WORD nWidth = LOWORD(lParam);  // width of client area 
     WORD nHeight = HIWORD(lParam); // height of client area 
+
+    if (!m_Toolbar.IsWindow() || !m_TabCtrl.IsWindow())
+        return 0;
 
     RECT rcLastBtn;
     int count = (int)m_Toolbar.SendMessage(TB_BUTTONCOUNT, 0, 0);
@@ -438,41 +519,52 @@ LRESULT CTabbarBandWindow::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
 
     int vSpace = (nHeight - rcLastBtn.bottom) / 2;
     RECT rcToolbar = { 0, vSpace , rcLastBtn.right, rcLastBtn.bottom + vSpace };
-    m_Toolbar.MoveWindow(&rcToolbar);
+    m_Toolbar.MoveWindow(&rcToolbar, TRUE);
 
     RECT rcTabctrl = { rcLastBtn.right + 2, 0, nWidth, nHeight };
-    m_TabCtrl.MoveWindow(&rcTabctrl);
+    m_TabCtrl.MoveWindow(&rcTabctrl, TRUE);
     
     bHandled = TRUE;
     return 0;
 }
 
-LRESULT CTabbarBandWindow::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CTabbarWindow::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     RECT rcClient;
     GetClientRect(&rcClient);
+    if (wParam != NULL)
+    {
+        CDCHandle dc((HDC)wParam);
+        DrawThemeParentBackground(m_hWnd, dc, &rcClient);
+    }
+    else
+    {
+        PAINTSTRUCT PaintStruct;
+        HDC hDC = BeginPaint(&PaintStruct);
+        CDCHandle dc(hDC);
 
-    PAINTSTRUCT PaintStruct;
-    HDC hDC = BeginPaint(&PaintStruct);
-    
-    EndPaint(&PaintStruct);
-    bHandled = FALSE;
+        //dc.FillSolidRect(&rcClient, RGB(0, 0, 255));
+        DrawThemeParentBackground(m_hWnd, dc, &rcClient);
+
+        EndPaint(&PaintStruct);
+    }
+    bHandled = TRUE;
     return 0;
 }
 
-LRESULT CTabbarBandWindow::OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CTabbarWindow::OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     HDC hDC = (HDC)wParam;
     
-    RECT rcClient;
-    GetClientRect(&rcClient);
+    //RECT rcClient;
+    //GetClientRect(&rcClient);
     //FillSolidRect(hDC, &rcClient, RGB(0,0,255));
-    DrawThemeParentBackground(m_hWnd, hDC, &rcClient);
+    //DrawThemeParentBackground(m_hWnd, hDC, &rcClient);
     bHandled = TRUE;
     return 1;
 }
 
-LRESULT CTabbarBandWindow::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CTabbarWindow::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     LogTrace(_T("CTabbarBandWindow::OnDestroy() invoked"));
     ReleaseToolbarImageList();
@@ -480,7 +572,7 @@ LRESULT CTabbarBandWindow::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
     return 0;
 }
 
-LRESULT CTabbarBandWindow::OnUpdateUI(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CTabbarWindow::OnUpdateUI(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     // update the state of the custom buttons based on the registry settings
 /*
@@ -504,7 +596,7 @@ LRESULT CTabbarBandWindow::OnUpdateUI(UINT uMsg, WPARAM wParam, LPARAM lParam, B
 }
 
 // Go to the parent folder
-LRESULT CTabbarBandWindow::OnNavigate(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+LRESULT CTabbarWindow::OnNavigate(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
     if (m_pBrowser)
     {
@@ -520,7 +612,7 @@ LRESULT CTabbarBandWindow::OnNavigate(WORD wNotifyCode, WORD wID, HWND hWndCtl, 
     return TRUE;
 }
 
-void CTabbarBandWindow::SendShellTabCommand(int command)
+void CTabbarWindow::SendShellTabCommand(int command)
 {
     // sends a command to the ShellTabWindowClass window
     for (CWindow parent = GetParent(); parent.m_hWnd; parent = parent.GetParent())
@@ -537,7 +629,7 @@ void CTabbarBandWindow::SendShellTabCommand(int command)
 }
 
 // Executes a cut/copy/paste/delete command
-LRESULT CTabbarBandWindow::OnToolbarCommand(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+LRESULT CTabbarWindow::OnToolbarCommand(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 #if 0
     if (wID >= ID_CUSTOM)
@@ -658,7 +750,7 @@ LRESULT CTabbarBandWindow::OnToolbarCommand(WORD wNotifyCode, WORD wID, HWND hWn
     return TRUE;
 }
 
-LRESULT CTabbarBandWindow::OnEmail(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+LRESULT CTabbarWindow::OnEmail(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
     const IID CLSID_SendMail = { 0x9E56BE60,0xC50F,0x11CF,{0x9A,0x2C,0x00,0xA0,0xC9,0x0A,0x90,0xCE} };
 
@@ -691,21 +783,71 @@ LRESULT CTabbarBandWindow::OnEmail(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
 }
 
 // Show the settings dialog
-LRESULT CTabbarBandWindow::OnSettings(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+LRESULT CTabbarWindow::OnSettings(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
     //ShowSettings(m_hWnd);
     ::MessageBox(m_hWnd, _T("fdgl;gjlksdf ;drgkj;lsdf g"), _T("TabExplorer"), MB_OK);
     return TRUE;
 }
 
-LRESULT CTabbarBandWindow::OnRClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+LRESULT CTabbarWindow::OnNewTab(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+    TString path = GetMyComputerPath();
+    
+    if (!AddNewTab(path, CIDLEx()))
+    {
+        ::MessageBox(m_hWnd, _T("add new tab fail!"), _T("TabExplorer"), MB_OK);
+    }
+
+    return TRUE;
+}
+
+LRESULT CTabbarWindow::OnTabctrlSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+{
+    NMCTC2ITEMS* pNmItem = (NMCTC2ITEMS*)pnmh;
+    
+    if (pNmItem->iItem1 >= 0)
+    {
+        CShellTabItem* psti = (CShellTabItem*)m_TabCtrl.GetItemData(pNmItem->iItem1);
+        ATLASSERT(psti != nullptr);
+        CIDLEx focus = m_ShellBrowser.GetFocusedItem();
+        std::vector<CIDLEx*> selectedItems;
+        m_ShellBrowser.GetSelectedItems(selectedItems, false);
+        psti->SetCurrentStatus(focus, selectedItems);
+    }
+    CShellTabItem * pti = (CShellTabItem *)m_TabCtrl.GetItemData(pNmItem->iItem2);
+    if (pti != NULL)
+    {
+        CIDLEx& cidl = pti->GetCidl();
+        m_ShellBrowser.Navigate(cidl);
+    }
+
+    return 0;
+}
+
+LRESULT CTabbarWindow::OnTabctrlDeleteItem(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+{
+    NMCTCITEM* pNmItem = (NMCTCITEM*)pnmh;
+    
+    CShellTabItem * pti = (CShellTabItem *)m_TabCtrl.GetItemData(pNmItem->iItem);
+    if (pti != NULL)
+    {
+        delete pti;
+    }
+
+    return 0;
+}
+
+LRESULT CTabbarWindow::OnRClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {
     NMMOUSE* pInfo = (NMMOUSE*)pnmh;
     POINT pt = pInfo->pt;
     {
         RECT rc;
-        int count = (int)m_Toolbar.SendMessage(TB_BUTTONCOUNT);
-        m_Toolbar.SendMessage(TB_GETITEMRECT, count - 1, (LPARAM)& rc);
+        
+        int count = m_Toolbar.GetButtonCount();// (int)m_Toolbar.SendMessage(TB_BUTTONCOUNT);
+        m_Toolbar.GetItemRect(count - 1, &rc);
+        //m_Toolbar.SendMessage(TB_GETITEMRECT, count - 1, (LPARAM)& rc);
         if (pt.x > rc.right)
             return 0;
     }
@@ -714,7 +856,7 @@ LRESULT CTabbarBandWindow::OnRClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
     return 1;
 }
 
-LRESULT CTabbarBandWindow::OnGetInfoTip(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+LRESULT CTabbarWindow::OnGetInfoTip(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {
     NMTBGETINFOTIP* pTip = (NMTBGETINFOTIP*)pnmh;
     const StdToolbarItem& item = s_StdItems[pTip->lParam];
@@ -728,7 +870,7 @@ LRESULT CTabbarBandWindow::OnGetInfoTip(int idCtrl, LPNMHDR pnmh, BOOL& bHandled
 
 // Subclasses the rebar control on Windows 7. Makes sure the RBBS_BREAK style is properly set. Windows 7 has a bug
 // that forces RBBS_BREAK for every rebar band
-LRESULT CALLBACK CTabbarBandWindow::RebarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+LRESULT CALLBACK CTabbarWindow::RebarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
     if (uMsg == RB_SETBANDINFO || uMsg == RB_INSERTBAND)
     {
@@ -736,7 +878,7 @@ LRESULT CALLBACK CTabbarBandWindow::RebarSubclassProc(HWND hWnd, UINT uMsg, WPAR
         REBARBANDINFO* pInfo = (REBARBANDINFO*)lParam;
         if ((pInfo->hwndChild == (HWND)dwRefData) && (pInfo->fMask & RBBIM_STYLE))
         {
-            if (((CTabbarBandWindow*)uIdSubclass)->m_bBandNewLine)
+            if (((CTabbarWindow*)uIdSubclass)->m_bBandNewLine)
                 pInfo->fStyle |= RBBS_BREAK;
             else
                 pInfo->fStyle &= ~RBBS_BREAK;

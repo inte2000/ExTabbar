@@ -364,7 +364,7 @@ protected:
 	bool m_bCanClose;
 	unsigned long long m_ullProgressCompleted;
 	unsigned long long m_ullProgressTotal;
-
+    ULONG_PTR m_ulData;
 public:
 	// NOTE: These are here for backwards compatibility.
 	//  Use the new CTFI_NONE, CTFI_RECT, etc.
@@ -394,7 +394,8 @@ public:
 		m_bHighlighted(false),
 		m_bCanClose(true),
 		m_ullProgressCompleted(0ULL),
-		m_ullProgressTotal(0ULL)
+		m_ullProgressTotal(0ULL),
+        m_ulData(0)
 	{
 		::SetRectEmpty(&m_rcItem);
 	}
@@ -420,10 +421,10 @@ public:
 			m_bCanClose     = rhs.m_bCanClose;
 			m_ullProgressCompleted = rhs.m_ullProgressCompleted;
 			m_ullProgressTotal = rhs.m_ullProgressTotal;
+            m_ulData = rhs.m_ulData;
 		}
 		return *this;
 	}
-
 // Accessors
 public:
 
@@ -453,6 +454,14 @@ public:
 		m_rcItem = rcItem;
 		return true;
 	}
+    ULONG_PTR GetData() const
+    {
+        return m_ulData;
+    }
+    void SetData(ULONG_PTR data)
+    {
+        m_ulData = data;
+    }
 
 	int GetImageIndex() const
 	{
@@ -3277,8 +3286,27 @@ public:
 		return TRUE;
 	}
 	*/
+    BOOL SetItemInfo(int nItem, int image, LPCTSTR text, LPCTSTR tooltip)
+    {
+        ATLASSERT(::IsWindow(m_hWnd));
 
-	TItem* GetItem(size_t nItem) const
+        // Copy caller's data to the internal structure
+        TItem* pItemT = m_Items[nItem];
+        if(text != NULL)
+            pItemT->SetText(text);
+        if(tooltip != NULL)
+            pItemT->SetToolTip(tooltip);
+        if(image >= 0)
+            pItemT->SetImageIndex(image);
+
+        // Repaint control
+        T* pT = static_cast<T*>(this);
+        pT->UpdateLayout();
+        this->Invalidate();
+        return TRUE;
+    }
+
+    TItem* GetItem(size_t nItem) const
 	{
 		ATLASSERT(nItem < m_Items.GetCount());
 		if( nItem >= m_Items.GetCount() )
@@ -3511,6 +3539,36 @@ public:
 
 		return TRUE;
 	}
+    
+    ULONG_PTR GetItemData(size_t nItem)
+    {
+        ATLASSERT(::IsWindow(m_hWnd));
+        ATLASSERT(nItem < m_Items.GetCount());
+        if (nItem >= m_Items.GetCount())
+        {
+            return 0;
+        }
+
+        TItem* pItem = m_Items[nItem];
+        ATLASSERT(pItem != NULL);
+
+        return pItem->GetData();
+    }
+
+    void SetItemData(size_t nItem, ULONG_PTR data)
+    {
+        ATLASSERT(::IsWindow(m_hWnd));
+        ATLASSERT(nItem < m_Items.GetCount());
+        if (nItem >= m_Items.GetCount())
+        {
+            return;
+        }
+
+        TItem* pItem = m_Items[nItem];
+        ATLASSERT(pItem != NULL);
+
+        pItem->SetData(data);
+    }
 
 	BOOL HighlightItem(size_t nItem, bool bHighlight = true)
 	{

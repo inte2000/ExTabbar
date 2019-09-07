@@ -418,12 +418,25 @@ void CIDLEx::Concat(const CIDLEx& a, const CIDLEx& b, CIDLEx& result)
     cb1 = a.GetSize() - sizeof(a.m_pidl->mkid.cb);
     cb2 = b.GetSize();
 
-    CShMem::GetAllocator()->Alloc(cb1 + cb2); // allocate enough memory 
+    result.m_pidl = (LPITEMIDLIST)CShMem::GetAllocator()->Alloc(cb1 + cb2); // allocate enough memory 
     CopyMemory(result.m_pidl, a.m_pidl, cb1);                 // 1st
     CopyMemory(((LPBYTE)result.m_pidl) + cb1, b.m_pidl, cb2); // 2nd
     result.m_bShareMode = false;
 }
 
+CIDLEx CIDLEx::CIDLFromFullPath(const TString& path)
+{
+    CIDLEx cidl;
+
+    LPITEMIDLIST pidl = ::ILCreateFromPath(path.c_str());
+    if (pidl != nullptr)
+    {
+        cidl.Attach(pidl, false);
+        ::ILFree(pidl);
+    }
+
+    return std::move(cidl);
+}
 
 void TransStrrefToString(LPCITEMIDLIST pidl, STRRET& strRet, TString& tString)
 {

@@ -91,13 +91,6 @@ extern const MIDL_SERVER_INFO ITabExplorerBHO_ServerInfo;
 extern const MIDL_STUBLESS_PROXY_INFO ITabExplorerBHO_ProxyInfo;
 
 
-extern const MIDL_STUB_DESC Object_StubDesc;
-
-
-extern const MIDL_SERVER_INFO ITabbarBand_ServerInfo;
-extern const MIDL_STUBLESS_PROXY_INFO ITabbarBand_ProxyInfo;
-
-
 
 #if !defined(__RPC_WIN64__)
 #error  Invalid build platform for this stub.
@@ -136,21 +129,6 @@ static const TabExplorer_MIDL_TYPE_FORMAT_STRING TabExplorer__MIDL_TypeFormatStr
 
 #pragma code_seg(".orpc")
 static const unsigned short ITabExplorerBHO_FormatStringOffsetTable[] =
-    {
-    (unsigned short) -1,
-    (unsigned short) -1,
-    (unsigned short) -1,
-    (unsigned short) -1,
-    0
-    };
-
-
-
-/* Object interface: ITabbarBand, ver. 0.0,
-   GUID={0x931743A6,0x9BAF,0x420C,{0x9C,0xF6,0x78,0x45,0x9D,0x9F,0x77,0x20}} */
-
-#pragma code_seg(".orpc")
-static const unsigned short ITabbarBand_FormatStringOffsetTable[] =
     {
     (unsigned short) -1,
     (unsigned short) -1,
@@ -308,99 +286,6 @@ CInterfaceStubVtbl _ITabExplorerBHOStubVtbl =
     CStdStubBuffer_DELEGATING_METHODS
 };
 
-
-/* Object interface: ITabbarBand, ver. 0.0,
-   GUID={0x931743A6,0x9BAF,0x420C,{0x9C,0xF6,0x78,0x45,0x9D,0x9F,0x77,0x20}} */
-
-#pragma code_seg(".orpc")
-static const FormatInfoRef ITabbarBand_Ndr64ProcTable[] =
-    {
-    (FormatInfoRef)(LONG_PTR) -1,
-    (FormatInfoRef)(LONG_PTR) -1,
-    (FormatInfoRef)(LONG_PTR) -1,
-    (FormatInfoRef)(LONG_PTR) -1,
-    0
-    };
-
-
-static const MIDL_SYNTAX_INFO ITabbarBand_SyntaxInfo [  2 ] = 
-    {
-    {
-    {{0x8A885D04,0x1CEB,0x11C9,{0x9F,0xE8,0x08,0x00,0x2B,0x10,0x48,0x60}},{2,0}},
-    0,
-    TabExplorer__MIDL_ProcFormatString.Format,
-    &ITabbarBand_FormatStringOffsetTable[-3],
-    TabExplorer__MIDL_TypeFormatString.Format,
-    0,
-    0,
-    0
-    }
-    ,{
-    {{0x71710533,0xbeba,0x4937,{0x83,0x19,0xb5,0xdb,0xef,0x9c,0xcc,0x36}},{1,0}},
-    0,
-    0 ,
-    (unsigned short *) &ITabbarBand_Ndr64ProcTable[-3],
-    0,
-    0,
-    0,
-    0
-    }
-    };
-
-static const MIDL_STUBLESS_PROXY_INFO ITabbarBand_ProxyInfo =
-    {
-    &Object_StubDesc,
-    TabExplorer__MIDL_ProcFormatString.Format,
-    &ITabbarBand_FormatStringOffsetTable[-3],
-    (RPC_SYNTAX_IDENTIFIER*)&_RpcTransferSyntax,
-    2,
-    (MIDL_SYNTAX_INFO*)ITabbarBand_SyntaxInfo
-    
-    };
-
-
-static const MIDL_SERVER_INFO ITabbarBand_ServerInfo = 
-    {
-    &Object_StubDesc,
-    0,
-    TabExplorer__MIDL_ProcFormatString.Format,
-    (unsigned short *) &ITabbarBand_FormatStringOffsetTable[-3],
-    0,
-    (RPC_SYNTAX_IDENTIFIER*)&_NDR64_RpcTransferSyntax,
-    2,
-    (MIDL_SYNTAX_INFO*)ITabbarBand_SyntaxInfo
-    };
-CINTERFACE_PROXY_VTABLE(7) _ITabbarBandProxyVtbl = 
-{
-    0,
-    &IID_ITabbarBand,
-    IUnknown_QueryInterface_Proxy,
-    IUnknown_AddRef_Proxy,
-    IUnknown_Release_Proxy ,
-    0 /* IDispatch::GetTypeInfoCount */ ,
-    0 /* IDispatch::GetTypeInfo */ ,
-    0 /* IDispatch::GetIDsOfNames */ ,
-    0 /* IDispatch_Invoke_Proxy */
-};
-
-
-static const PRPC_STUB_FUNCTION ITabbarBand_table[] =
-{
-    STUB_FORWARDING_FUNCTION,
-    STUB_FORWARDING_FUNCTION,
-    STUB_FORWARDING_FUNCTION,
-    STUB_FORWARDING_FUNCTION
-};
-
-CInterfaceStubVtbl _ITabbarBandStubVtbl =
-{
-    &IID_ITabbarBand,
-    &ITabbarBand_ServerInfo,
-    7,
-    &ITabbarBand_table[-3],
-    CStdStubBuffer_DELEGATING_METHODS
-};
-
 static const MIDL_STUB_DESC Object_StubDesc = 
     {
     0,
@@ -428,27 +313,23 @@ static const MIDL_STUB_DESC Object_StubDesc =
 const CInterfaceProxyVtbl * const _TabExplorer_ProxyVtblList[] = 
 {
     ( CInterfaceProxyVtbl *) &_ITabExplorerBHOProxyVtbl,
-    ( CInterfaceProxyVtbl *) &_ITabbarBandProxyVtbl,
     0
 };
 
 const CInterfaceStubVtbl * const _TabExplorer_StubVtblList[] = 
 {
     ( CInterfaceStubVtbl *) &_ITabExplorerBHOStubVtbl,
-    ( CInterfaceStubVtbl *) &_ITabbarBandStubVtbl,
     0
 };
 
 PCInterfaceName const _TabExplorer_InterfaceNamesList[] = 
 {
     "ITabExplorerBHO",
-    "ITabbarBand",
     0
 };
 
 const IID *  const _TabExplorer_BaseIIDList[] = 
 {
-    &IID_IDispatch,
     &IID_IDispatch,
     0
 };
@@ -458,11 +339,14 @@ const IID *  const _TabExplorer_BaseIIDList[] =
 
 int __stdcall _TabExplorer_IID_Lookup( const IID * pIID, int * pIndex )
 {
-    IID_BS_LOOKUP_SETUP
-
-    IID_BS_LOOKUP_INITIAL_TEST( _TabExplorer, 2, 1 )
-    IID_BS_LOOKUP_RETURN_RESULT( _TabExplorer, 2, *pIndex )
     
+    if(!_TabExplorer_CHECK_IID(0))
+        {
+        *pIndex = 0;
+        return 1;
+        }
+
+    return 0;
 }
 
 const ExtendedProxyFileInfo TabExplorer_ProxyFileInfo = 
@@ -472,7 +356,7 @@ const ExtendedProxyFileInfo TabExplorer_ProxyFileInfo =
     (const PCInterfaceName * ) & _TabExplorer_InterfaceNamesList,
     (const IID ** ) & _TabExplorer_BaseIIDList,
     & _TabExplorer_IID_Lookup, 
-    2,
+    1,
     2,
     0, /* table of [async_uuid] interfaces */
     0, /* Filler1 */

@@ -120,15 +120,17 @@ public:
     // Concatenation using the + operator
     CIDLEx operator + (const CIDLEx& pidl) const;
 
-    // (result = a+b)
-    static void Concat(const CIDLEx& a, const CIDLEx& b, CIDLEx& result);
-
     operator LPITEMIDLIST& () { return m_pidl; }
     operator LPITEMIDLIST* () { return &m_pidl; }
     operator LPCITEMIDLIST() const { return m_pidl; }
     operator LPCITEMIDLIST* () const { return (LPCITEMIDLIST*)&m_pidl; }
 
     void Release();
+
+    // (result = a+b)
+    static void Concat(const CIDLEx& a, const CIDLEx& b, CIDLEx& result);
+    static CIDLEx CIDLFromFullPath(const TString& path);
+
 protected:
     LPITEMIDLIST Clone(LPITEMIDLIST pidl);
 

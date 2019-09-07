@@ -8,6 +8,7 @@
 #include "DebugLog.h"
 #include "SystemFunctions.h"
 #include "HookLibManager.h"
+#include "PrivateMessage.h"
 
 CTabExplorerModule _AtlModule;
 
@@ -23,6 +24,7 @@ bool OnNewWindow(LPCITEMIDLIST pIDL)
 
 BOOL OnShellExtLoaded(HMODULE hShlExtMod)
 {
+    RegisterPrivateMessage();
     CallbackStruct callbacks = { HookResult, OnNewWindow };
     if (!GetHookMgmt().LoadHookLib(hShlExtMod))
     {

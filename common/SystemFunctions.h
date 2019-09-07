@@ -6,9 +6,11 @@ BOOL IsWindowsVersionEqual(DWORD major, DWORD minor, DWORD servicePack);
 BOOL IsWindowsXP();
 BOOL IsWindows7();
 BOOL IsWindows8();
+BOOL IsWindows10();
 
 TString GetAppPathName(HMODULE hMod, LPCTSTR lpName);
 TString GetSystemFolderPath(int nFolder);
+TString GetMyComputerPath();
 TString GetLocalAppDataPath();
 TString GetAppDataPath();
 TString GetUserProfilePath();
@@ -25,4 +27,5 @@ BOOL IsFileExists(const TString& path);
 BOOL IsNetworkPath(const TString& path);
 BOOL IsNamespacePath(const TString& path);
 BOOL IsDiskRootPath(const TString& path);
-TString GetTabItemText(const TString& path);
+
+HWND FindChildWndEx(HWND hwnd, LPCTSTR className, LPCTSTR caption = nullptr);

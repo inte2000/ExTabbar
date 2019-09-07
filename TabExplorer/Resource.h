@@ -16,7 +16,6 @@
 #define IDI_UP2PRESSED                  107
 #define IDI_UP2HOT                      108
 #define IDI_UP2DISABLED                 109
-#define IDR_TABBARBAND                  110
 
 // Next default values for new objects
 // 
@@ -25,6 +24,6 @@
 #define _APS_NEXT_RESOURCE_VALUE        201
 #define _APS_NEXT_COMMAND_VALUE         32768
 #define _APS_NEXT_CONTROL_VALUE         201
-#define _APS_NEXT_SYMED_VALUE           111
+#define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

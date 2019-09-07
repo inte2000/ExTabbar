@@ -43,12 +43,6 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DebugLog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HookLibManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="log_inc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -58,17 +52,8 @@
     <ClInclude Include="ExplorerWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TabbarBand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TabbarBandWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WspFunctions.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ui\TeTabctrl.h">
-      <Filter>ui</Filter>
     </ClInclude>
     <ClInclude Include="..\ui\MemDC.h">
       <Filter>ui</Filter>
@@ -103,6 +88,45 @@
     <ClInclude Include="..\common\ShellGuids.h">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="TeTabctrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ShellTabItem.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\NavigatedPoint.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\DebugLog.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\HookLibManager.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="TabbarWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TravelBand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LeftTreeView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StatusBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShellTabWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AddressBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WzToolbar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\PrivateMessage.h">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TabExplorer.cpp">
@@ -117,22 +141,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DebugLog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HookLibManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TabExplorerBHO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ExplorerWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TabbarBand.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TabbarBandWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WspFunctions.cpp">
@@ -157,6 +169,45 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\common\ShellGuids.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ShellTabItem.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\NavigatedPoint.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\DebugLog.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\HookLibManager.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="TabbarWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TravelBand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LeftTreeView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StatusBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShellTabWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AddressBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WzToolbar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TeTabctrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\PrivateMessage.cpp">
       <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>

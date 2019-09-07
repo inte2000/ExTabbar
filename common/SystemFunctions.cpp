@@ -67,6 +67,11 @@ BOOL IsWindows8()
     return (IsWindowsVersionEqual(6, 2, 0) || IsWindowsVersionEqual(6, 3, 0));
 }
 
+BOOL IsWindows10()
+{
+    return IsWindowsVersionEqual(10, 0, 0);
+}
+
 TString GetAppPathName(HMODULE hMod, LPCTSTR lpName)
 {
 	TCHAR szBuf[MAX_PATH];
@@ -99,6 +104,11 @@ TString GetSystemFolderPath(int nFolder)
     }
 
     return TString(_T(""));
+}
+
+TString GetMyComputerPath()
+{
+    return GetSystemFolderPath(CSIDL_DRIVES);
 }
 
 TString GetLocalAppDataPath()
@@ -329,26 +339,54 @@ BOOL IsDiskRootPath(const TString& path)
     return FALSE;
 }
 
-TString GetTabItemText(const TString& path)
+struct FindChildClass
 {
-    TString text;
-    std::size_t rSlash = path.rfind(_T('\\'));
-    if (rSlash == TString::npos)
-    {
-        return path;
-    }
+    LPCTSTR className;
+    LPCTSTR wndCaption;
+    HWND hWnd;
+};
 
-    std::size_t pos = path.find(_T(':'), 0);
-    if (pos > 0)
+static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam)
+{
+    FindChildClass *find = (FindChildClass *)lParam;
+    TCHAR className[256];
+    ::GetClassName(hwnd, className, _countof(className));
+    ATLTRACE(_T("EnumChildProc find class %s\n"), className);
+    if (find->wndCaption != nullptr)
     {
-        text = path.substr(0, pos);
-        text += _T("...");
-        text += path.substr(rSlash + 1);
+        TCHAR caption[256] = { 0 };
+        ::GetWindowText(hwnd, caption, _countof(caption));
+        if ((lstrcmpi(className, find->className) == 0) && (lstrcmpi(caption, find->wndCaption) == 0))
+        {
+            find->hWnd = hwnd;
+            return FALSE;
+        }
     }
     else
     {
-        text = path.substr(rSlash + 1);
+        if (lstrcmpi(className, find->className) == 0)
+        {
+            find->hWnd = hwnd;
+            return FALSE;
+        }
     }
 
-    return std::move(text);
+    return TRUE;
 }
+
+HWND FindChildWndEx(HWND hwnd, LPCTSTR className, LPCTSTR caption)
+{
+    FindChildClass find = { className, caption, NULL };
+    EnumChildWindows(hwnd, EnumChildProc, (LPARAM)&find);
+    
+    return find.hWnd;
+}
+
+/*
+template<class T>
+void ClearStack(std::stack<T>& stk)
+{
+    while (stk.size() > 0)
+        stk.pop();
+}
+*/

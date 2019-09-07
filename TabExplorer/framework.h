@@ -31,6 +31,7 @@ using namespace ATL;
 #include <atlctrls.h>
 #include <atlmisc.h>
 #include <atlcrack.h>
+#include <atltheme.h>
 
 
 #include <shobjidl.h>
@@ -46,6 +47,10 @@ using namespace ATL;
 
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <memory>
+
+
 typedef std::basic_string<TCHAR> TString;
 
 #include "DebugLog.h"

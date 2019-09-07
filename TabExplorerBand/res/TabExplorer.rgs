@@ -1,0 +1,11 @@
+HKCR
+{
+	NoRemove AppID
+	{
+		'%APPID%' = s 'TabExplorer'
+		'TabExplorer.DLL'
+		{
+			val AppID = s '%APPID%'
+		}
+	}
+}

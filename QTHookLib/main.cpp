@@ -141,15 +141,15 @@ int Initialize(CallbackStruct* cb) {
     callbacks = *cb;
 
     // Register the messages.
-    WM_REGISTERDRAGDROP = RegisterWindowMessageA("QTTabBar_RegisterDragDrop");
-    WM_NEWTREECONTROL   = RegisterWindowMessageA("QTTabBar_NewTreeControl");
-    WM_BROWSEOBJECT     = RegisterWindowMessageA("QTTabBar_BrowseObject");
-    WM_HEADERINALLVIEWS = RegisterWindowMessageA("QTTabBar_HeaderInAllViews");
-    WM_LISTREFRESHED    = RegisterWindowMessageA("QTTabBar_ListRefreshed");
-    WM_ISITEMSVIEW      = RegisterWindowMessageA("QTTabBar_IsItemsView");
-    WM_ACTIVATESEL      = RegisterWindowMessageA("QTTabBar_ActivateSelection");
-    WM_BREADCRUMBDPA    = RegisterWindowMessageA("QTTabBar_BreadcrumbDPA");
-    WM_CHECKPULSE       = RegisterWindowMessageA("QTTabBar_CheckPulse");
+    WM_REGISTERDRAGDROP = RegisterWindowMessageA("TabExplorer_RegisterDragDrop");
+    WM_NEWTREECONTROL   = RegisterWindowMessageA("TabExplorer_NewTreeControl");
+    WM_BROWSEOBJECT     = RegisterWindowMessageA("TabExplorer_BrowseObject");
+    WM_HEADERINALLVIEWS = RegisterWindowMessageA("TabExplorer_HeaderInAllViews");
+    WM_LISTREFRESHED    = RegisterWindowMessageA("TabExplorer_ListRefreshed");
+    WM_ISITEMSVIEW      = RegisterWindowMessageA("TabExplorer_IsItemsView");
+    WM_ACTIVATESEL      = RegisterWindowMessageA("TabExplorer_ActivateSelection");
+    WM_BREADCRUMBDPA    = RegisterWindowMessageA("TabExplorer_BreadcrumbDPA");
+    WM_CHECKPULSE       = RegisterWindowMessageA("TabExplorer_CheckPulse");
 
     // Create and enable the CoCreateInstance, RegisterDragDrop, and SHCreateShellFolderView hooks.
     CREATE_HOOK(&CoCreateInstance, CoCreateInstance);
@@ -290,7 +290,7 @@ HRESULT WINAPI DetourBrowseObject(IShellBrowser* _this, PCUIDLIST_RELATIVE pidl,
     if(SUCCEEDED(_this->GetWindow(&hwnd))) {
         HWND parent = GetParent(hwnd);
         if(parent != 0) hwnd = parent;
-        result = SendMessage(hwnd, WM_BROWSEOBJECT, (WPARAM)(&wFlags), (LPARAM)pidl);
+        result = SendMessage(hwnd, WM_BROWSEOBJECT, (WPARAM)(wFlags), (LPARAM)pidl);
     } 
     return result == 0 ? fpBrowseObject(_this, pidl, wFlags) : S_FALSE;
 }

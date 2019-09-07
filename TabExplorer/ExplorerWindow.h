@@ -2,51 +2,55 @@
 #pragma once
 #include "resource.h"       // main symbols
 
-class CExplorerWindow
+#include "TabbarWindow.h"
+#include "TravelBand.h"
+#include "LeftTreeView.h"
+#include "StatusBar.h"
+#include "ShellTabWindow.h"
+#include "AddressBar.h"
+
+class CExplorerWindow final
 {
 public:
-	CExplorerWindow()
-	{
-		m_bResetStatus=true;
-		m_bForceRefresh=false;
-        m_bUpToolbarAdd = false;
-        m_hExplorerWnd = NULL;
-	}
+    CExplorerWindow();
+    ~CExplorerWindow() {}
 	
 	BOOL OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CComPtr<IShellBrowser>& spShellBrowser);
     void OnExplorerDetach();
-    void OnNavigateComplete();
+    HRESULT OnBeforeNavigate(const TString& strUrl);
+    void OnNavigateComplete(const TString& strUrl);
     HWND GetHwnd() const { return m_hExplorerWnd; }
-
+    void UpdateTabSizeAndPosition(RECT &StwRect);
+    int GetTabbarHeight() const { return m_iTabbarHeight; }
 protected:
-    void SetUpButtonStatus(bool bEnable);
-    BOOL AddUpButtonToExplorBar();
-    void RemoveUpButtonFromExplorBar();
     BOOL SubclassStatusBar();
+    BOOL SubclassLeftTree(HWND hTreeView);
     BOOL HookExplorer();
     void UnhookExplorer();
 
-	enum
-	{
-		SPACE_SHOW=1, // show free space and selection size
-		SPACE_TOTAL=2, // show total size when nothing is selected
-		SPACE_WIN7=4, // running on Win7 (fix the status bar parts and show the disk free space)
-	};
-	
+    //void OnSize(DWORD_PTR dwSizeType, DWORD nWidth, DWORD nHeight);
+    BOOL OnBrowseObject(LPCITEMIDLIST pidl, UINT wFlags);
+
 protected:	
-	CWindow m_Toolbar;
+    CTabbarWindow m_TabbarWnd;
+    CTravelBand m_TravelBand; //for win7 add up button
+    CLeftTreeView m_LeftTree;
+    CStatusBar m_Statusbar;
+    CShellTabWindow m_ShellTabWnd;
+    CAddressBar m_AddressBar;
+
+    int   m_iTabbarHeight;
+
     HWND m_hExplorerWnd;
-    BOOL m_bUpToolbarAdd;
-	HICON m_IconNormal, m_IconHot, m_IconPressed, m_IconDisabled;
-	bool m_bResetStatus;
-	bool m_bForceRefresh;
+    UINT_PTR m_ExplorerSubclassId;
+
     CComPtr<IWebBrowser2> m_spWebBrowser2;
 	CComPtr<IShellBrowser> m_spShellBrowser;
 
 public:
+    static CExplorerWindow *m_pThisExplorer;
 	static __declspec(thread) HHOOK s_Hook;
 	static LRESULT CALLBACK HookExplorer( int code, WPARAM wParam, LPARAM lParam );
-	static LRESULT CALLBACK SubclassStatusProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass,                                           DWORD_PTR dwRefData );
-	static LRESULT CALLBACK RebarSubclassProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass,                                          DWORD_PTR dwRefData );
+    static LRESULT CALLBACK ExplorerSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 };
 

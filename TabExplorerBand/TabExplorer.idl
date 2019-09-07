@@ -1,0 +1,61 @@
+// TabExplorer.idl : IDL source for TabExplorer
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (TabExplorer.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+    object,
+    uuid(9442648A-428E-4F22-B03A-51D6EE9FCBFA),
+    dual,
+    nonextensible,
+    helpstring("ITabExplorerBHO Interface"),
+    pointer_default(unique)
+]
+interface ITabExplorerBHO : IDispatch
+{
+};
+
+[
+    object,
+    uuid(931743A6-9BAF-420C-9CF6-78459D9F7720),
+    dual,
+    nonextensible,
+    helpstring("ITabbarBand Interface"),
+    pointer_default(unique)
+]
+interface ITabbarBand : IDispatch
+{
+};
+
+[
+	uuid(3fc345a8-4fda-4fb7-8762-50de64a370fe),
+	version(1.0),
+]
+library TabExplorerLib
+{
+    importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+    [
+        uuid(70AF1B13-ACC5-4108-909D-514D3EA15C88),
+        helpstring("TabExplorerBHO Class")
+    ]
+    coclass TabExplorerBHO
+    {
+        [default] interface ITabExplorerBHO;
+    };
+
+    [
+        uuid(C43B8324-773C-4CFF-8676-5DA1C2CEC6BB),
+        helpstring("TabbarBand Class")
+    ]
+    coclass TabbarBand
+    {
+        [default] interface ITabbarBand;
+    };
+
+};

@@ -29,9 +29,12 @@ public:
 	DECLARE_REGISTRY_RESOURCEID(IDR_TABEXPLORERBHO)
 
 	BEGIN_SINK_MAP(CTabExplorerBHO)
-		SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete)
-		SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_ONQUIT, OnQuit)
+        SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, OnBeforeNavigate2)
+        SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete2)
+        SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_COMMANDSTATECHANGE, OnCommandStateChange)
+        SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_ONQUIT, OnQuit)
 	END_SINK_MAP()
+
 
 	BEGIN_COM_MAP(CTabExplorerBHO)
 		COM_INTERFACE_ENTRY(ITabExplorerBHO)
@@ -58,7 +61,9 @@ public:
     //STDMETHOD(GetSite)(REFIID riid, LPVOID* ppvReturn);
 
 	// DWebBrowserEvents2
-	STDMETHOD(OnNavigateComplete)( IDispatch *pDisp, VARIANT *URL );
+    STDMETHOD(OnBeforeNavigate2)(IDispatch* pDisp, VARIANT* URL, VARIANT* Flags, VARIANT* TargetFrameName, VARIANT* PostData, VARIANT* Headers, VARIANT_BOOL* Cancel);
+	STDMETHOD(OnNavigateComplete2)( IDispatch *pDisp, VARIANT *URL );
+    STDMETHOD(OnCommandStateChange)(long Command, VARIANT_BOOL Enable);
 	STDMETHOD(OnQuit)( void );
 
 private:
