@@ -14,7 +14,6 @@
 
 
 // CTabExplorerBHO - a browser helper object that implements Alt+Enter for the folder tree
-
 HRESULT STDMETHODCALLTYPE CTabExplorerBHO::SetSite( IUnknown *pUnkSite )
 {
     //HRESULT hr;

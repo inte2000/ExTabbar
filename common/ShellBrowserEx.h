@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "ShellWrapper.h"
+#include "IDListData.h"
 
 class CShellBrowserEx
 {
@@ -22,7 +23,8 @@ public:
     CIDLEx GetItem(int idx, bool noAppend = false);
     int GetItemCount();
     HRESULT GetItems(std::vector<CIDLEx *>& items, bool selectedOnly = false, bool noAppend = false);
-    HRESULT GetSelectedItems(std::vector<CIDLEx*>& items, bool noAppend = false) { return GetItems(items, true, noAppend); }
+    HRESULT GetSelectedItems(std::vector<CIDListData *>& items, bool bDisplayName = false);
+    HRESULT SetSelectedItems(const std::vector<CIDListData*>& items, const TString& focusPath);
     int GetSelectedCount();
     CIDLEx ILAppend(LPITEMIDLIST pidl);
 

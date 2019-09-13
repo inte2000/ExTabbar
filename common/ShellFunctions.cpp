@@ -59,4 +59,3 @@ TString StringFromVariant(VARIANT* var)
 
     return std::move(strRtn);
 }
-

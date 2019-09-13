@@ -13,6 +13,7 @@ public:
     LPSHELLFOLDER Detach() { LPSHELLFOLDER tmp = m_pSF; m_pSF = nullptr; return tmp; }
 
     HRESULT ParseDisplayName(LPCTSTR pszDisplayName, ULONG* pchEaten, PIDLIST_RELATIVE* ppidl, ULONG* pdwAttributes);
+    HRESULT ParseDisplayName(LPCTSTR pszDisplayName, PIDLIST_RELATIVE* ppidl);
     HRESULT GetDisplayNameOf(PCUITEMID_CHILD pidl, SHGDNF uFlags, TString& name);
     HRESULT BindToObject(PCUIDLIST_RELATIVE pidl, REFIID riid, void** ppv);
     HRESULT BindToFolder(PCUIDLIST_RELATIVE pidl, CShellFolder& sf);
@@ -65,14 +66,21 @@ class CIDLEx
 {
 public:
     CIDLEx() { m_pidl = nullptr; m_bShareMode = true; }
-    CIDLEx(LPITEMIDLIST pidl, bool bShare) { Attach(pidl, bShare); }
+    CIDLEx(LPCITEMIDLIST pidl, bool bShare) { Attach(pidl, bShare); }
     CIDLEx(const CIDLEx& idl) { Attach(idl.m_pidl, false); }
+    CIDLEx(const unsigned char* pData, int size) { CreateByIdListData(pData, size); }
     CIDLEx(CIDLEx&& idl);
     virtual ~CIDLEx() { Release(); }
 
     bool IsEmpty() const { return (m_pidl == nullptr); }
-    void Attach(LPITEMIDLIST pidl, bool bShare);
+    void Attach(LPCITEMIDLIST pidl, bool bShare);
     LPITEMIDLIST Detach();
+
+    //construct by idlist raw data
+    bool CreateByIdListData(const unsigned char* data, int size);
+    
+    //get raw idlist data
+    unsigned char* GetIDListData(int& size) const;
 
     //copy set
     HRESULT Set(LPITEMIDLIST pidl) { Attach(pidl, false); }
@@ -132,7 +140,7 @@ public:
     static CIDLEx CIDLFromFullPath(const TString& path);
 
 protected:
-    LPITEMIDLIST Clone(LPITEMIDLIST pidl);
+    LPITEMIDLIST Clone(LPCITEMIDLIST pidl);
 
 protected:
     LPITEMIDLIST  m_pidl;

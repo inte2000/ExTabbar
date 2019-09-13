@@ -39,6 +39,14 @@ HRESULT CShellFolder::ParseDisplayName(LPCTSTR pszDisplayName, ULONG* pchEaten, 
     return E_FAIL;
 }
 
+HRESULT CShellFolder::ParseDisplayName(LPCTSTR pszDisplayName, PIDLIST_RELATIVE* ppidl)
+{
+    ULONG chEaten = 0;
+    ULONG dwAttributes = 0;
+
+    return ParseDisplayName(pszDisplayName, &chEaten, ppidl, &dwAttributes);
+}
+
 HRESULT CShellFolder::GetDisplayNameOf(PCUITEMID_CHILD pidl, SHGDNF uFlags, TString& name)
 {
     if (m_pSF != nullptr)
@@ -170,14 +178,14 @@ CIDLEx::CIDLEx(CIDLEx&& idl)
     idl.m_bShareMode = true;
 }
 
-void CIDLEx::Attach(LPITEMIDLIST pidl, bool bShare)
+void CIDLEx::Attach(LPCITEMIDLIST pidl, bool bShare)
 {
     Release();
 
     m_bShareMode = bShare;
     if (m_bShareMode)
     {
-        m_pidl = pidl;
+        m_pidl = const_cast<LPITEMIDLIST>(pidl);
     }
     else
     {
@@ -191,6 +199,44 @@ LPITEMIDLIST CIDLEx::Detach()
     m_pidl = nullptr;
     m_bShareMode = true;
     return tmp;
+}
+
+
+bool CIDLEx::CreateByIdListData(const unsigned char* data, int size)
+{
+    if ((data == nullptr) || (size == 0))
+    {
+        return false;
+    }
+
+    Release();
+
+    m_pidl = (LPITEMIDLIST)CShMem::GetAllocator()->Alloc(size);
+    ::CopyMemory(m_pidl, data, size);
+    m_bShareMode = false;
+
+    return true;;
+}
+
+unsigned char* CIDLEx::GetIDListData(int& size) const
+{
+    unsigned char* pData = nullptr;
+    size = 0;
+    if (m_pidl != nullptr) 
+    {
+        UINT dataSize = ::ILGetSize(m_pidl);
+        if (dataSize != 0)
+        {
+            pData = new unsigned char[dataSize];
+            if (pData != nullptr)
+            {
+                ::CopyMemory(pData, m_pidl, dataSize);
+                size = static_cast<int>(dataSize);
+            }
+        }
+    }
+
+    return pData;
 }
 
 HRESULT CIDLEx::Set(LPCTSTR szPath, LPSHELLFOLDER psf)
@@ -379,11 +425,11 @@ void CIDLEx::Release()
     }
 }
 
-LPITEMIDLIST CIDLEx::Clone(LPITEMIDLIST pidl)
+LPITEMIDLIST CIDLEx::Clone(LPCITEMIDLIST pidl)
 {
     if (pidl == nullptr)
         return nullptr;
-
+#if 0
     CShMem* shm = CShMem::GetAllocator();
     SIZE_T size = shm->GetSize((void *)pidl);
     void* pClone = shm->Alloc(size);
@@ -391,6 +437,9 @@ LPITEMIDLIST CIDLEx::Clone(LPITEMIDLIST pidl)
     {
         ::CopyMemory((void *)pClone, (void *)pidl, size);
     }
+#endif
+    LPITEMIDLIST pClone = ::ILClone(pidl);
+
     return (LPITEMIDLIST)pClone;
 }
 

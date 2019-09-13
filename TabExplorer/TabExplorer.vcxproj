@@ -52,27 +52,23 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="Shared">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="..\..\..\development\log4cplus-2.0.4_share.props" />
+    <Import Project="..\..\..\development\WTL_100.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\development\log4cplus-2.0.4_share.props" />
-    <Import Project="..\..\development\WTL-10.0.props" />
+    <Import Project="..\..\..\development\log4cplus-2.0.4_share.props" />
+    <Import Project="..\..\..\development\WTL_100.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\development\log4cplus-2.0.4_share.props" />
-    <Import Project="..\..\development\WTL-10.0.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\development\log4cplus-2.0.4_share.props" />
-    <Import Project="..\..\development\WTL-10.0.props" />
+    <Import Project="..\..\..\development\log4cplus-2.0.4_share.props" />
+    <Import Project="..\..\..\development\WTL_100.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\development\log4cplus-2.0.4_share.props" />
-    <Import Project="..\..\development\WTL-10.0.props" />
+    <Import Project="..\..\..\development\log4cplus-2.0.4_share.props" />
+    <Import Project="..\..\..\development\WTL_100.props" />
+  </ImportGroup>
+  <ImportGroup Label="Shared">
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -241,9 +237,11 @@
     <ClInclude Include="..\common\DebugLog.h" />
     <ClInclude Include="..\common\GuidEx.h" />
     <ClInclude Include="..\common\HookLibManager.h" />
+    <ClInclude Include="..\common\IDListData.h" />
     <ClInclude Include="..\common\NavigatedPoint.h" />
     <ClInclude Include="..\common\PrivateMessage.h" />
     <ClInclude Include="..\common\ShellBrowserEx.h" />
+    <ClInclude Include="..\common\ShellFoldersMap.h" />
     <ClInclude Include="..\common\ShellFunctions.h" />
     <ClInclude Include="..\common\ShellGuids.h" />
     <ClInclude Include="..\common\ShellTabItem.h" />
@@ -277,9 +275,11 @@
     <ClCompile Include="..\common\DebugLog.cpp" />
     <ClCompile Include="..\common\GuidEx.cpp" />
     <ClCompile Include="..\common\HookLibManager.cpp" />
+    <ClCompile Include="..\common\IDListData.cpp" />
     <ClCompile Include="..\common\NavigatedPoint.cpp" />
     <ClCompile Include="..\common\PrivateMessage.cpp" />
     <ClCompile Include="..\common\ShellBrowserEx.cpp" />
+    <ClCompile Include="..\common\ShellFoldersMap.cpp" />
     <ClCompile Include="..\common\ShellFunctions.cpp" />
     <ClCompile Include="..\common\ShellGuids.cpp" />
     <ClCompile Include="..\common\ShellTabItem.cpp" />

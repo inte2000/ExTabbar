@@ -65,9 +65,9 @@ LRESULT CALLBACK CExplorerWindow::ExplorerSubclassProc(HWND hWnd, UINT uMsg, WPA
         UINT wFlags = (UINT)wParam;
         LPCITEMIDLIST pidl = (LPCITEMIDLIST)lParam;
         if (pThisExplorer->OnBrowseObject(pidl, wFlags))
-            return 0;
-        else
             return 1;
+        else
+            return 0;
     }
 #if 0
     if (uMsg == WM_SIZE)
@@ -186,17 +186,10 @@ void CExplorerWindow::OnExplorerDetach()
 
 HRESULT CExplorerWindow::OnBeforeNavigate(const TString& strUrl)
 {
-/*
-    if (!m_IsShown)
-    {
-        DoFirstNavigation(true, strUrl);
-    }
-*/
-//    HWND hUpWnd = FindChildWndEx(m_hExplorerWnd, _T("UIRibbonCommandBarDock"), _T("UIRibbonDockTop"));
-
     if (!m_LeftTree.IsTreeModified())
         m_LeftTree.ModifyTreeItem();
 
+    m_TabbarWnd.OnBeforeNavigate(strUrl);
     return S_OK;
 }
 
@@ -286,11 +279,11 @@ BOOL CExplorerWindow::OnBrowseObject(LPCITEMIDLIST pidl, UINT wFlags)
 {
     if ((wFlags & SBSP_NAVIGATEBACK) != 0)
     {
-        return m_TabbarWnd.OnNavigateCurrentTab(true);
+        return m_TabbarWnd.NavigateCurrentTab(true);
     }
     else if ((wFlags & SBSP_NAVIGATEFORWARD) != 0)
     {
-        return m_TabbarWnd.OnNavigateCurrentTab(false);
+        return m_TabbarWnd.NavigateCurrentTab(false);
     }
     else
     {
@@ -301,6 +294,6 @@ BOOL CExplorerWindow::OnBrowseObject(LPCITEMIDLIST pidl, UINT wFlags)
             cidl.Attach((LPITEMIDLIST)pidl, false);
         }
 
-        return m_TabbarWnd.OnBeforeNavigate(cidl, autonav);
+        return m_TabbarWnd.BeforeNavigate(cidl, autonav);
     }
 }

@@ -20,7 +20,7 @@
 #include <Shlobj.h>
 #include <UIAutomationCore.h>
 #include "CComPtr.h"
-#include "..\MinHook\MinHook.h"
+#include "MinHook.h"
 
 // Hook declaration macro
 #define DECLARE_HOOK(id, ret, name, params)                                         \

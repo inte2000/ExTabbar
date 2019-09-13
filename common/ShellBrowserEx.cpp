@@ -144,6 +144,93 @@ HRESULT CShellBrowserEx::GetItems(std::vector<CIDLEx *>& items, bool selectedOnl
     return hr;
 }
 
+void FreeCIdlist(std::vector<CIDLEx*>& cidlist)
+{
+    for (auto& cidl : cidlist)
+    {
+        delete cidl;
+    }
+
+    cidlist.clear();
+}
+
+HRESULT CShellBrowserEx::GetSelectedItems(std::vector<CIDListData *>& items, bool bDisplayName)
+{ 
+    std::vector<CIDLEx *> cidlist;
+    HRESULT hr = GetItems(cidlist, true, false);
+    if (hr == S_OK)
+    {
+        for (auto& cidl : cidlist)
+        {
+            TString path = bDisplayName ? cidl->GetDisplayName() : cidl->GetParseName();
+            CIDListData* idlData = new CIDListData(cidl, path);
+            items.push_back(idlData);
+        }
+
+        FreeCIdlist(cidlist);
+    }
+    return hr;
+}
+
+HRESULT CShellBrowserEx::SetSelectedItems(const std::vector<CIDListData*>& items, const TString& focusPath)
+{
+    CComPtr<IFolderView> spFolderView;
+    CComPtr<IShellView> pShellView;
+    HRESULT hr = m_spShellBrowser->QueryActiveShellView(&pShellView);
+    if (hr != S_OK)
+        return hr;
+
+    hr = pShellView->QueryInterface(IID_IFolderView, (void**)& spFolderView);
+    if (hr != S_OK)
+        return hr;
+
+    bool focusSeted = false;
+    spFolderView->SelectItem(0, SVSI_DESELECTOTHERS);
+    for (auto& x : items)
+    {
+        CIDLEx cidl;
+        const TString& strPath = x->GetPath();
+        auto rawIdl = x->GetIDLData();
+        if ((std::get<0>(rawIdl) != nullptr) && (std::get<1>(rawIdl) > 0))
+        {
+            cidl.CreateByIdListData(std::get<0>(rawIdl), std::get<1>(rawIdl));
+        }
+        else
+        {
+            LPITEMIDLIST pidl = nullptr;
+            CShellFolder desktopFolder = CDesktopFolder::GetDesktopFolder();
+            hr = desktopFolder.ParseDisplayName(strPath.c_str(), &pidl);
+            if (hr == S_OK)
+            {
+                cidl.Attach(pidl, false);
+            }
+        }
+        LPITEMIDLIST pidlLast = ::ILFindLastID(cidl);
+        UINT uFlags = SVSI_SELECT | SVSI_ENSUREVISIBLE;
+        if (strPath == focusPath)
+        {
+            uFlags |= SVSI_FOCUSED; 
+            focusSeted = true;
+        }
+        pShellView->SelectItem(pidlLast, uFlags);
+        cidl.Release();
+    }
+    if (!focusSeted)
+    {
+        LPITEMIDLIST pidlFocus = nullptr;
+        CShellFolder desktopFolder = CDesktopFolder::GetDesktopFolder();
+        hr = desktopFolder.ParseDisplayName(focusPath.c_str(), &pidlFocus);
+        if (hr == S_OK)
+        {
+            LPITEMIDLIST pidlFocusLast = ::ILFindLastID(pidlFocus);
+            pShellView->SelectItem(pidlFocusLast, SVSI_FOCUSED | SVSI_ENSUREVISIBLE);
+            ::CoTaskMemFree(pidlFocus);
+        }
+    }
+
+    return S_OK;
+}
+
 int CShellBrowserEx::GetSelectedCount()
 {
     int count = 0;

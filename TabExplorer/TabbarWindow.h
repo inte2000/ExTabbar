@@ -4,6 +4,7 @@
 #include "ShellWrapper.h"
 #include "ShellBrowserEx.h"
 #include "SystemFolders.h"
+#include "ShellFoldersMap.h"
 #include "WzToolBar.h"
 
 
@@ -51,9 +52,10 @@ public:
     void UpdateToolbar(void);
 
     void MovePosition(const RECT& TabsRect);
-    BOOL AddNewTab(const TString& path, const CIDLEx& cidl);
-    BOOL OnNavigateCurrentTab(bool bBack);
-    BOOL OnBeforeNavigate(CIDLEx& target, bool bAutoNav);
+    BOOL AddNewTab(const TString& path);
+    BOOL NavigateCurrentTab(bool bBack);
+    BOOL BeforeNavigate(CIDLEx& target, bool bAutoNav);
+    void OnBeforeNavigate(const TString& strUrl);
     void OnNavigateComplete(const TString& strUrl);
 protected:
 
@@ -112,6 +114,8 @@ protected:
     void GetBarWndRect(RECT& rc);
     void SaveRebarBreakState();
 
+    BOOL GetCIDLDataByParseName(const TString& parseName, CIDLEx& cidl, CIDListData& IdlData);
+    void InitializeFirstTabOnStartup(const TString& strUrl);
 private:
     //CWindow m_Toolbar;
     CWzToolbar m_Toolbar;
@@ -124,9 +128,13 @@ private:
     bool m_bSubclassedRebar; // the rebar is subclassed
     bool m_bBandNewLine; // our band is on a new line (has RBBS_BREAK style)
     CSystemFolders m_sysFolder;
+    CShellFoldersMap m_shlFolderMap;
     CShellBrowserEx m_ShellBrowser;
     //for explorer
     HWND m_hExplorerWnd;
+
+    bool m_bNavigatedByTab;
+    bool m_bInitFirstTabs;
 
     void SendShellTabCommand(int command);
 

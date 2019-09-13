@@ -6,7 +6,7 @@
 
 bool HookLibManager::LoadHookLib(HMODULE hAppMod)
 {
-    TString hookDllPathName = GetAppPathName(hAppMod, _T("QTHookLib.dll"));
+    TString hookDllPathName = GetAppPathName(hAppMod, _T("ETHookLib.dll"));
     HMODULE hHookDll = ::LoadLibrary(hookDllPathName.c_str());
     if (hHookDll == NULL)
         return false;

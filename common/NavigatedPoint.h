@@ -1,22 +1,21 @@
 #pragma once
 
 #include "ShellWrapper.h"
+#include "IDListData.h"
 
 class CNavigatedPoint final
 {
 public:
-    CNavigatedPoint (const TString& path, const CIDLEx& cidl, int hash, bool autoNav);
-    ~CNavigatedPoint () { m_cidl.Release(); }
+    CNavigatedPoint (const CIDListData& IdlData, const CIDLEx& cidl, int hash, bool autoNav);
+    ~CNavigatedPoint () { }
     
     bool IsSameNPoint(const CNavigatedPoint& np);
-    const TString& GetPath() const { return m_strPath; }
+    const CIDListData& GetCurrent() const { return m_curItem; }
     const TString& GetTitle() const { return m_strTitle; }
     const TString& GetTooltip() const { return m_strTooltip; }
-    CIDLEx& GetCIdl() { return m_cidl; }
     bool IsAutoVav() const { return m_autoNav; }
 protected:
-    TString m_strPath;
-    CIDLEx m_cidl;
+    CIDListData m_curItem;
     TString m_strTitle;
     TString m_strTooltip;
     int m_Hash;

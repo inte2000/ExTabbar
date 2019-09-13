@@ -4,7 +4,7 @@
 #include "SystemFunctions.h"
 #include "NavigatedPoint.h"
 
-TString GetTabItemText(CIDLEx& cidl, const TString& path)
+TString GetTabItemText(const CIDLEx& cidl, const TString& path)
 {
     TString text;
 
@@ -34,7 +34,7 @@ TString GetTabItemText(CIDLEx& cidl, const TString& path)
     return std::move(text);
 }
 
-TString GetTabItemTooltip(CIDLEx& cidl, bool bSlowMethod)
+TString GetTabItemTooltip(const CIDLEx& cidl, bool bSlowMethod)
 {
     TString text;
 
@@ -61,20 +61,15 @@ TString GetTabItemTooltip(CIDLEx& cidl, bool bSlowMethod)
     return std::move(text);
 }
 
-CNavigatedPoint::CNavigatedPoint(const TString& path, const CIDLEx& cidl, int hash, bool autoNav)
+CNavigatedPoint::CNavigatedPoint(const CIDListData& IdlData, const CIDLEx& cidl, int hash, bool autoNav)
 {
-    m_strPath = path;
+    m_curItem = IdlData;
 
-    if (cidl.IsEmpty())
-        m_cidl = CIDLEx::CIDLFromFullPath(path);
+    m_strTitle = GetTabItemText(cidl, IdlData.GetPath());
+    if (IsNamespacePath(IdlData.GetPath()))
+        m_strTooltip = GetTabItemTooltip(cidl, true);
     else
-        m_cidl = cidl;
-
-    m_strTitle = GetTabItemText(m_cidl, path);
-    if (IsNamespacePath(path))
-        m_strTooltip = GetTabItemTooltip(m_cidl, true);
-    else
-        m_strTooltip = path;
+        m_strTooltip = IdlData.GetPath();
 
     m_Hash = hash;
     m_autoNav = autoNav;
@@ -82,7 +77,7 @@ CNavigatedPoint::CNavigatedPoint(const TString& path, const CIDLEx& cidl, int ha
 
 bool CNavigatedPoint::IsSameNPoint(const CNavigatedPoint& np)
 {
-    if (m_strPath.compare(np.m_strPath) == 0)
+    if (m_curItem.IsSame(np.m_curItem) == 0)
         return true;
 
     return false;

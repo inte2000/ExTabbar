@@ -18,7 +18,7 @@ void HookResult(int hookId, int retcode)
 
 bool OnNewWindow(LPCITEMIDLIST pIDL)
 {
-    LogTrace(_T("OnNewWindow invoked by QTHookLib!"));
+    LogTrace(_T("OnNewWindow invoked by ETHookLib!"));
     return true;
 }
 
@@ -28,7 +28,7 @@ BOOL OnShellExtLoaded(HMODULE hShlExtMod)
     CallbackStruct callbacks = { HookResult, OnNewWindow };
     if (!GetHookMgmt().LoadHookLib(hShlExtMod))
     {
-        LogError(_T("HookLibManager fail to load QTHookLib!"));
+        LogError(_T("HookLibManager fail to load ETHookLib!"));
         return FALSE;
     }
 
@@ -43,7 +43,7 @@ BOOL OnShellExtLoaded(HMODULE hShlExtMod)
 
 void OnShellExtUnloaded()
 {
-    LogTrace(_T("HookLibManager try to unload QTHookLib!"));
+    LogTrace(_T("HookLibManager try to unload ETHookLib!"));
     GetHookMgmt().UnloadHookLib();
 }
 

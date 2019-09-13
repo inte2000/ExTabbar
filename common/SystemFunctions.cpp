@@ -318,9 +318,6 @@ BOOL IsNetworkPath(const TString& path)
 
 BOOL IsNamespacePath(const TString& path)
 {
-    if (path.empty())
-        return TRUE;
-
     if (path.find(INDICATOR_NAMESPACE, 0) == 0)
         return TRUE;
 

@@ -3332,8 +3332,8 @@ public:
 		// called even if it is the same item
 		//
 		// OLD:
-		// // Selecting same tab?  If so, we won't go through all the notifications
-		// if( (int)nItem==m_iCurSel ) return m_iCurSel;
+		// Selecting same tab?  If so, we won't go through all the notifications
+		if( (int)nItem==m_iCurSel ) return m_iCurSel;
 
 		if( nItem >= (int)m_Items.GetCount() )
 		{

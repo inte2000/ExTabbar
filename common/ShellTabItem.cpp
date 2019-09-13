@@ -22,13 +22,13 @@ void CShellTabItem::Release()
 void CShellTabItem::GetHistoryBack(std::vector<TString>& historys)
 {
     for (auto it = m_hisBackward.begin(); it != m_hisBackward.end(); ++it)
-        historys.push_back((*it)->GetPath());
+        historys.push_back((*it)->GetCurrent().GetPath());
 }
 
 void CShellTabItem::GetHistoryForward(std::vector<TString>& historys)
 {
     for (auto it = m_hisForward.begin(); it != m_hisForward.end(); ++it)
-        historys.push_back((*it)->GetPath());
+        historys.push_back((*it)->GetCurrent().GetPath());
 }
 
 bool CShellTabItem::GoBackward(std::shared_ptr<CNavigatedPoint>& np)
@@ -65,9 +65,9 @@ bool CShellTabItem::GoForward(std::shared_ptr<CNavigatedPoint>& np)
     return false;
 }
 
-bool CShellTabItem::NavigatedTo(const TString& path, const CIDLEx& cidl, int hash, bool autoNav)
+bool CShellTabItem::NavigatedTo(const CIDListData& IdlData, const CIDLEx& cidl, int hash, bool autoNav)
 {
-    m_CurNp = ::std::make_shared<CNavigatedPoint>(CNavigatedPoint(path, cidl, hash, autoNav));
+    m_CurNp = ::std::make_shared<CNavigatedPoint>(CNavigatedPoint(IdlData, cidl, hash, autoNav));
     if (m_CurNp == nullptr)
         return false;
 
@@ -99,11 +99,18 @@ bool CShellTabItem::NavigatedTo(const TString& path, const CIDLEx& cidl, int has
     return true;
 }
 
-void CShellTabItem::SetCurrentStatus(CIDLEx& focus, std::vector<CIDLEx*>& items)
+void CShellTabItem::SetCurrentStatus(const TString& focusPath, std::vector<CIDListData *>& items)
 {
     ReleaseStatus();
-    m_focusCIdl = std::move(focus);
+    m_focusPath = std::move(focusPath);
     m_SelectedItems = std::move(items);
+}
+
+const std::vector<CIDListData*>& CShellTabItem::GetCurrentStatus(TString& focusPath) const
+{
+    focusPath = m_focusPath;
+
+    return m_SelectedItems;
 }
 
 void CShellTabItem::ClearCurrentStatus()
@@ -113,7 +120,7 @@ void CShellTabItem::ClearCurrentStatus()
 
 void CShellTabItem::ReleaseStatus()
 {
-    m_focusCIdl.Release();
+    m_focusPath.clear();
     for (auto& x : m_SelectedItems)
     {
         delete x;
