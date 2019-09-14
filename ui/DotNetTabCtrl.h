@@ -320,7 +320,8 @@ public:
 
 		if(::EqualRect(&rcClip, &m_rcCloseButton) ||
 			::EqualRect(&rcClip, &m_rcScrollRight) ||
-			::EqualRect(&rcClip, &m_rcScrollLeft))
+            ::EqualRect(&rcClip, &m_rcNewTabButton) ||
+            ::EqualRect(&rcClip, &m_rcScrollLeft))
 		{
 			// Paint needed in only "other button" area
 
@@ -349,7 +350,11 @@ public:
 			// Connect with the client area.
 			DWORD dwStyle = this->GetStyle();
 
-			if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+            if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+            {
+                //dc.FrameRect();
+            }
+			else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 			{
 				rc.bottom = rc.top + 3;
 				dc.FillSolidRect(&rc, lpNMCustomDraw->clrBtnFace);
@@ -365,7 +370,6 @@ public:
 			}
 			else
 			{
-				int nOrigTop = rc.top;
 				rc.top = rc.bottom - 2;
 				dc.FillSolidRect(&rc, lpNMCustomDraw->clrBtnFace);
 
@@ -376,30 +380,7 @@ public:
 				dc.MoveTo(rc.left, rc.top-1);
 				dc.LineTo(rc.right, rc.top-1);
 
-				rc.top = nOrigTop;
-
-				CPen penShadow, pen3D;
-				penShadow.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnShadow);
-				pen3D.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnFace);
-				dc.SelectPen(penShadow);
-
-				dc.MoveTo(rc.left, rc.bottom);
-				dc.LineTo(rc.left, rc.top);
-				dc.LineTo(rc.right-1, rc.top);
-						
-				if(0 == (dwStyle & CTCS_FLATEDGE))
-				{
-					dc.SelectPen(penHilight);
-				}
-				dc.LineTo(rc.right-1, rc.bottom);
-
-				dc.SelectPen(pen3D);
-				dc.MoveTo(rc.right-2, rc.bottom-3);
-				dc.LineTo(rc.right-2, rc.top);
-				dc.MoveTo(rc.left+1, rc.bottom-3);
-				dc.LineTo(rc.left+1, rc.top);
-
-				dc.SelectPen(penOld);
+                dc.SelectPen(penOld);
 			}
 
 		}
@@ -407,7 +388,17 @@ public:
 
 	void DrawItem_InitBounds(DWORD dwStyle, RECT rcItem, RECT& rcTab, RECT& rcText, int& nIconVerticalCenter)
 	{
-		if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+        if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+        {
+            rcTab.top += 2;
+            rcTab.bottom -= 2;
+            rcText.top = rcTab.top + 1 + m_nFontSizeTextTopOffset;
+            rcText.bottom = rcTab.bottom;
+            //nIconVerticalCenter = rcTab.top + (rc.bottom - rcTab.top) / 2;
+            //nIconVerticalCenter = rcTab.top + rcText.Height() / 2;
+            nIconVerticalCenter = (rcItem.bottom + rcItem.top) / 2 + rcTab.top / 2;
+        }
+		else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 		{
 			rcTab.top += 3;
 			rcTab.bottom -= 2;
@@ -420,8 +411,8 @@ public:
 		}
 		else
 		{
-			rcTab.top += 3;
-			rcTab.bottom -= 2;
+			rcTab.top += 1;
+			rcTab.bottom -= 1;
 
 			rcText.top = rcItem.top+1 + m_nFontSizeTextTopOffset;
 			rcText.bottom = rcItem.bottom;
@@ -451,7 +442,19 @@ public:
 		penText.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnText);
 		penHilight.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnHighlight);
 
-		if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+        if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+        {
+            WTL::CPenHandle penOld = dc.SelectPen(penText);
+
+            dc.MoveTo(rcTab.right, rcTab.top);
+            dc.LineTo(rcTab.right, rcTab.bottom);
+            dc.LineTo(rcTab.left, rcTab.bottom);
+            dc.SelectPen(penHilight);
+            dc.LineTo(rcTab.left, rcTab.top - 1);
+            dc.LineTo(rcTab.right, rcTab.top - 1);
+            dc.SelectPen(penOld);
+        }
+        else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 		{
 			WTL::CPenHandle penOld = dc.SelectPen(penText);
 
@@ -467,11 +470,12 @@ public:
 		{
 			WTL::CPenHandle penOld = dc.SelectPen(penHilight);
 
-			dc.MoveTo(rcTab.left, rcTab.bottom-1);
+			dc.MoveTo(rcTab.left, rcTab.bottom - 2);
 			dc.LineTo(rcTab.left, rcTab.top);
 			dc.LineTo(rcTab.right, rcTab.top);
 			dc.SelectPen(penText);
-			dc.LineTo(rcTab.right, rcTab.bottom);
+			dc.MoveTo(rcTab.right, rcTab.top + 1);
+			dc.LineTo(rcTab.right, rcTab.bottom - 2);
 
 			dc.SelectPen(penOld);
 		}
@@ -488,7 +492,13 @@ public:
 
 		if(bHighlighted)
 		{
-			if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+            if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+            {
+                RECT rcHighlight = { rcTab.left + 1, rcTab.top + 1, rcTab.right - 2, rcTab.bottom - 1 };
+                if (nItem - 1 == m_iCurSel) rcHighlight.left += 1;  // Item to the right of the selected tab
+                dc.FillSolidRect(&rcHighlight, lpNMCustomDraw->clrHighlight);
+            }
+			else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 			{
 				RECT rcHighlight = {rcTab.left+1, rcTab.top+3, rcTab.right-2, rcTab.bottom-1};
 				if(nItem - 1 == m_iCurSel) rcHighlight.left += 1;  // Item to the right of the selected tab
@@ -513,7 +523,12 @@ public:
 			WTL::CPen pen;
 			pen.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnShadow);
 			WTL::CPenHandle penOld = dc.SelectPen(pen);
-			if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+            if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+            {
+				dc.MoveTo(rcTab.right-1, rcTab.top + 1);
+				dc.LineTo(rcTab.right-1, rcTab.bottom - 1);
+            }
+			else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 			{
 				// Important!  Be sure and keep within "our" tab area horizontally
 				dc.MoveTo(rcTab.right-1, rcTab.top + 3);
@@ -601,7 +616,7 @@ public:
 			if((ii.rcImage.right - ii.rcImage.left) < (rcTab.right - rcTab.left))
 			{
 				int nImageHalfHeight = (ii.rcImage.bottom - ii.rcImage.top) / 2;
-				m_imageList.Draw(dc, nImageIndex, rcText.left, nIconVerticalCenter - nImageHalfHeight + m_nFontSizeTextTopOffset, ILD_NORMAL);
+				m_imageList.Draw(dc, nImageIndex, rcText.left, nIconVerticalCenter - nImageHalfHeight + m_nFontSizeTextTopOffset, ILD_TRANSPARENT);//ILD_NORMAL
 			}
 
 			// Offset on the right of the image.
@@ -767,9 +782,62 @@ public:
 		dc.SelectPen(penOld);
 	}
 
-	void DrawNewButton(LPNMCTCCUSTOMDRAW /*lpNMCustomDraw*/)
+	void DrawNewButton(LPNMCTCCUSTOMDRAW lpNMCustomDraw)
 	{
-	}
+        COLORREF crBk, crText;
+
+        if (ectcMouseDownL_NewTabButton == (m_dwState & ectcMouseDown))
+        {
+            crBk = lpNMCustomDraw->clrSelectedTab;
+            crText = lpNMCustomDraw->clrTextSelected;
+        }
+        else if (ectcMouseOver_NewTabButton == (m_dwState & ectcMouseOver))
+        {
+            crBk = lpNMCustomDraw->clrHighlightHotTrack;
+            crText = lpNMCustomDraw->clrTextSelected;
+        }
+        else
+        {
+            crBk = lpNMCustomDraw->clrBtnShadow;
+            crText = lpNMCustomDraw->clrBtnText;
+        }
+
+        CDCHandle dc(lpNMCustomDraw->nmcd.hdc);
+
+        RECT rcN = m_rcNewTabButton;
+        if (ectcMouseDownL_NewTabButton == (m_dwState & ectcMouseDown))
+        {
+            if (ectcMouseOver_NewTabButton == (m_dwState & ectcMouseOver))
+            {
+                ::OffsetRect(&rcN, 1, 1);
+            }
+        }
+        int ll = rcN.left + (rcN.right - rcN.left - 10) / 2;
+        int tt = rcN.top + (rcN.bottom - rcN.top - 10) / 2;
+        int ccl = rcN.left + (rcN.right - rcN.left) / 2;
+        int cct = rcN.top + (rcN.bottom - rcN.top) / 2;
+
+        WTL::CPen penline;
+        penline.CreatePen(PS_SOLID, 3, crText);
+        HPEN oldpen = dc.SelectPen(penline);
+        dc.MoveTo(ll, cct);
+        dc.LineTo(ll + 10, cct);
+        dc.MoveTo(ccl, tt);
+        dc.LineTo(ccl, tt + 10);
+        dc.SelectPen(oldpen);
+
+        if (ectcMouseDownL_NewTabButton == (m_dwState & ectcMouseDown))
+        {
+            if (ectcMouseOver_NewTabButton == (m_dwState & ectcMouseOver))
+            {
+                dc.DrawEdge(&m_rcNewTabButton, BDR_SUNKENOUTER, BF_RECT);
+            }
+        }
+        else if (ectcHotTrack_NewTabButton == (m_dwState & ectcHotTrack))
+        {
+            dc.DrawEdge(&m_rcNewTabButton, BDR_RAISEDINNER, BF_RECT);
+        }
+    }
 
 // Overrides for painting from CCustomTabCtrl
 public:
@@ -881,7 +949,10 @@ public:
 		//  would need to be updated).
 		DWORD dwStyle = this->GetStyle();
 
-		if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+        if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+        {
+        }
+		else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 		{
 			// TODO: Update to actually specify the
 			//  non-client areas, and adjust all of the
@@ -924,7 +995,13 @@ public:
 
 		DWORD dwStyle = this->GetStyle();
 
-		if (CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+        if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+        {
+            m_rcCloseButton.top += 1;
+            m_rcCloseButton.bottom -= 1;
+            m_rcCloseButton.right -= 3;
+        }
+		else if (CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 		{
 			m_rcCloseButton.top += 3;
 			m_rcCloseButton.right -= 3;
@@ -969,7 +1046,15 @@ public:
 
 		DWORD dwStyle = this->GetStyle();
 
-		if (CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+        if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+        {
+            rcScroll.top += 1;
+            if (0 == (dwStyle & CTCS_CLOSEBUTTON))
+            {
+                rcScroll.right -= 3;
+            }
+        }
+		else if (CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 		{
 			rcScroll.top += 3;
 			if(0 == (dwStyle & CTCS_CLOSEBUTTON))
@@ -1007,6 +1092,56 @@ public:
 		prcTabItemArea->right = m_rcScrollLeft.left;
 	}
 
+    void CalcSize_NewTabButton(LPRECT prcTabItemArea)
+    {
+        int nButtonSizeX = 19;
+        int nButtonSizeY = 19;
+
+        if ((prcTabItemArea->right - prcTabItemArea->left) < nButtonSizeX)
+        {
+            ::SetRectEmpty(&m_rcNewTabButton);
+            return;
+        }
+
+        m_rcNewTabButton = *prcTabItemArea;
+        size_t nCount = m_Items.GetCount();
+        if (nCount > 0)
+        {
+            TItem* pItem = m_Items[nCount - 1];
+            RECT rcLastItem = pItem->GetRect();
+            m_rcNewTabButton.left = rcLastItem.right + 1;
+            m_rcNewTabButton.right = m_rcNewTabButton.left + nButtonSizeX;
+        }
+        else
+        {
+            m_rcNewTabButton.right = m_rcNewTabButton.left + nButtonSizeX;
+        }
+
+        DWORD dwStyle = this->GetStyle();
+
+        if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+        {
+        }
+        else if (CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+        {
+            m_rcNewTabButton.top += 3;
+        }
+        else
+        {
+            m_rcNewTabButton.top += 1;
+            m_rcNewTabButton.bottom -= 2;
+        }
+        m_rcNewTabButton.top = (m_rcNewTabButton.bottom + m_rcNewTabButton.top - nButtonSizeY) / 2;
+        m_rcNewTabButton.bottom = m_rcNewTabButton.top + nButtonSizeY;
+
+        if (m_tooltip.IsWindow())
+        {
+            m_tooltip.SetToolRect(m_hWnd, (UINT)ectcToolTip_NewTab, &m_rcNewTabButton);
+        }
+
+        // Adjust the tab area
+        //prcTabItemArea->right = m_rcNewTabButton.left;
+    }
 
 	void UpdateLayout_Default(RECT rcTabItemArea)
 	{

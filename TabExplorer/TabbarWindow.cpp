@@ -206,7 +206,7 @@ BOOL CTabbarWindow::CreateTabctrlWnd()
 
     //CTCS_EDITLABELS
     RECT rcTabCtrl = { 0, 0, 10, 10 };
-    DWORD dwTabStyle = CTCS_TOOLTIPS | CTCS_DRAGREARRANGE | CTCS_SCROLL | CTCS_HOTTRACK;
+    DWORD dwTabStyle = CTCS_TOOLTIPS | CTCS_FIXEDWIDTH | CTCS_SCROLL | CTCS_HOTTRACK;// | CTCS_BUTTONS;
 /*
     if (g_bTabFixWidth)
         dwTabStyle |= CTCS_FIXEDWIDTH;
@@ -364,7 +364,8 @@ BOOL CTabbarWindow::AddNewTab(const TString& path)
         }
         
         psti->NavigatedTo(IdlData, cidl, -1, true);
-        int index = m_TabCtrl.InsertItem(0, psti->GetTitle().c_str(), 0, psti->GetTooltip().c_str());
+        int iconIdx = GetShellObjectIcon(cidl);
+        int index = m_TabCtrl.InsertItem(0, psti->GetTitle().c_str(), iconIdx, psti->GetTooltip().c_str());
         if (index >= 0)
         {
             m_TabCtrl.SetItemData(index, (ULONG_PTR)psti);
@@ -433,7 +434,8 @@ void CTabbarWindow::OnNavigateComplete(const TString& strUrl)
         }
 
         psti->NavigatedTo(IdlData, cidl, 0, false);
-        m_TabCtrl.SetItemInfo(nItem, -1, psti->GetTitle().c_str(), psti->GetTooltip().c_str());
+        int iconIdx = GetShellObjectIcon(cidl);
+        m_TabCtrl.SetItemInfo(nItem, iconIdx, psti->GetTitle().c_str(), psti->GetTooltip().c_str());
         if (m_bNavigatedByTab)
         {
             TString focusPath;
@@ -581,11 +583,28 @@ LRESULT CTabbarWindow::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
     RECT rcToolbar = { 0, vSpace , rcLastBtn.right, rcLastBtn.bottom + vSpace };
     m_Toolbar.MoveWindow(&rcToolbar, TRUE);
 
-    RECT rcTabctrl = { rcLastBtn.right + 2, 0, nWidth, nHeight };
+    RECT rcTabctrl = { rcLastBtn.right + 2, 0, nWidth, nHeight }; //流出分隔线的空间
     m_TabCtrl.MoveWindow(&rcTabctrl, TRUE);
     
     bHandled = TRUE;
     return 0;
+}
+
+void CTabbarWindow::DrawBackground(CDCHandle& dc, const CRect& rcClient)
+{
+    CRect rcToolbar;
+
+    m_Toolbar.GetWindowRect(&rcToolbar);
+    int leftOffset = rcClient.left + rcToolbar.Width() + 1;
+
+    DrawThemeParentBackground(m_hWnd, dc, &rcClient);
+    
+    WTL::CPen pen;
+    pen.CreatePen(PS_SOLID, 1, ::GetSysColor(COLOR_BTNSHADOW));
+    WTL::CPenHandle penOld = dc.SelectPen(pen);
+    dc.MoveTo(leftOffset, rcClient.top + 3);
+    dc.LineTo(leftOffset, rcClient.bottom - 3);
+    dc.SelectPen(penOld);
 }
 
 LRESULT CTabbarWindow::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -595,17 +614,14 @@ LRESULT CTabbarWindow::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bH
     if (wParam != NULL)
     {
         CDCHandle dc((HDC)wParam);
-        DrawThemeParentBackground(m_hWnd, dc, &rcClient);
+        DrawBackground(dc, rcClient);
     }
     else
     {
         PAINTSTRUCT PaintStruct;
         HDC hDC = BeginPaint(&PaintStruct);
         CDCHandle dc(hDC);
-
-        //dc.FillSolidRect(&rcClient, RGB(0, 0, 255));
-        DrawThemeParentBackground(m_hWnd, dc, &rcClient);
-
+        DrawBackground(dc, rcClient);
         EndPaint(&PaintStruct);
     }
     bHandled = TRUE;
@@ -862,9 +878,17 @@ LRESULT CTabbarWindow::OnNewTab(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& 
     return TRUE;
 }
 
+LRESULT CTabbarWindow::OnTabctrlNewTabButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+{
+    NMCTCITEM* pNtItem = reinterpret_cast<NMCTCITEM*>(pnmh);
+    //if(pNtItem->pt.x, pNtItem->pt.y)
+
+    return 0;
+}
+
 LRESULT CTabbarWindow::OnTabctrlSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {
-    NMCTC2ITEMS* pNmItem = (NMCTC2ITEMS*)pnmh;
+    NMCTC2ITEMS* pNmItem = reinterpret_cast<NMCTC2ITEMS *>(pnmh);
     
     if (pNmItem->iItem1 >= 0)
     {

@@ -379,6 +379,32 @@ HWND FindChildWndEx(HWND hwnd, LPCTSTR className, LPCTSTR caption)
     return find.hWnd;
 }
 
+HIMAGELIST GetSystemImageList(BOOL bLargeIcon)
+{
+    HIMAGELIST hSysImgList = NULL;
+    SHFILEINFO shfi;
+    UINT uFlags = SHGFI_SYSICONINDEX | (bLargeIcon ? SHGFI_LARGEICON : SHGFI_SMALLICON);
+    hSysImgList = (HIMAGELIST)::SHGetFileInfo((LPCTSTR)_T(""), 0, &shfi, sizeof(SHFILEINFO), uFlags);
+    if (hSysImgList == NULL)
+    {
+        return NULL;
+    }
+
+    return hSysImgList;
+}
+
+int GetShellObjectIcon(LPCITEMIDLIST pidl)
+{
+    SHFILEINFO sfi;
+    DWORD_PTR rtn = ::SHGetFileInfo((LPCTSTR)pidl, 0, &sfi, sizeof(SHFILEINFO), SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+    if (rtn != 0)
+    {
+        return sfi.iIcon;
+    }
+
+    return -1;
+}
+
 /*
 template<class T>
 void ClearStack(std::stack<T>& stk)

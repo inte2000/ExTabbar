@@ -22,10 +22,17 @@ public:
 protected:
     
     BEGIN_MSG_MAP(CTeTabCtrl)
-        CHAIN_MSG_MAP(CDotNetTabCtrlImpl<CTeTabCtrl>)
+        MESSAGE_HANDLER(WM_CREATE, OnCreate)
+        MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
         //REFLECTED_NOTIFY_CODE_HANDLER(CTCN_SELCHANGE, OnSelChange)
+        CHAIN_MSG_MAP(CDotNetTabCtrlImpl<CTeTabCtrl>)
         DEFAULT_REFLECTION_HANDLER()
     END_MSG_MAP()
     
+    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
     LRESULT OnSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+
+protected:
+    CImageList m_sysImgList;
 };

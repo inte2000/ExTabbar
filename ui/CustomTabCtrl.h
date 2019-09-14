@@ -226,10 +226,12 @@
 //#define CTCS_VERTICAL            0x0080   // TCS_VERTICAL
 //#define CTCS_TABS                0x0000   // TCS_TABS
 #define CTCS_FLATEDGE            0x0100   // TCS_BUTTONS
+#define CTCS_BUTTONS             0x0100   // TCS_BUTTONS
 //#define CTCS_SINGLELINE          0x0000   // TCS_SINGLELINE
 //#define CTCS_MULTILINE           0x0200   // TCS_MULTILINE
 //#define CTCS_RIGHTJUSTIFY        0x0000   // TCS_RIGHTJUSTIFY
-#define CTCS_DRAGREARRANGE       0x0400   // TCS_FIXEDWIDTH
+#define CTCS_FIXEDWIDTH          0x0400   // TCS_FIXEDWIDTH
+
 //#define CTCS_OLEDRAGDROP         0x0800   // TCS_RAGGEDRIGHT
 //#define CTCS_FOCUSONBUTTONDOWN   0x1000   // TCS_FOCUSONBUTTONDOWN
 #define CTCS_BOLDSELECTEDTAB     0x2000   // TCS_OWNERDRAWFIXED
@@ -595,108 +597,6 @@ public:
 		if(bMatch && (eFlags & CTFI_CANCLOSE) == CTFI_CANCLOSE)
 		{
 			bMatch = (m_bCanClose == pItem->m_bCanClose);
-		}
-
-		if(bMatch)
-		{
-			*pItem = *this;
-		}
-
-		return bMatch;
-	}
-};
-
-// Derived Tab Item class that supports an HWND identifying a "tab view"
-class CTabViewTabItem : public CCustomTabItem
-{
-protected:
-	typedef CCustomTabItem baseClass;
-
-// Member variables (in addition to CCustomTabItem ones)
-protected:
-	HWND m_hWndTabView;
-
-public:
-	// NOTE: This is here for backwards compatibility.
-	//  Use the new CTFI_TABVIEW instead
-	typedef enum tagFieldFlags
-	{
-		eCustomTabItem_TabView = CTFI_TABVIEW,
-	}FieldFlags;
-
-// Use CTFI_TABVIEW instead
-#if (_MSC_VER >= 1300)
-	#pragma deprecated(eCustomTabItem_TabView)
-#endif
-
-// Constructors/Destructors
-public:
-	CTabViewTabItem() :
-		m_hWndTabView(NULL)
-	{
-	}
-
-	CTabViewTabItem(const CTabViewTabItem& rhs)
-	{
-		*this = rhs;
-	}
-
-	virtual ~CTabViewTabItem()
-	{
-	}
-
-	const CTabViewTabItem& operator=(const CTabViewTabItem& rhs)
-	{
-		if(&rhs != this)
-		{
-			m_rcItem        = rhs.m_rcItem;
-			m_nImage        = rhs.m_nImage;
-			m_sText         = rhs.m_sText;
-			m_sToolTip      = rhs.m_sToolTip;
-			m_bHighlighted  = rhs.m_bHighlighted;
-			m_bCanClose     = rhs.m_bCanClose;
-			m_hWndTabView   = rhs.m_hWndTabView;
-		}
-		return *this;
-	}
-
-// Accessors
-public:
-
-	HWND GetTabView() const
-	{
-		return m_hWndTabView;
-	}
-	bool SetTabView(HWND hWnd = NULL)
-	{
-		m_hWndTabView = hWnd;
-		return true;
-	}
-
-// Methods:
-public:
-	bool UsingTabView() const
-	{
-		return (m_hWndTabView != NULL);
-	}
-
-	bool MatchItem(CTabViewTabItem* pItem, DWORD eFlags) const
-	{
-		bool bMatch = true;
-		if(eFlags == CTFI_TABVIEW)
-		{
-			// Make the common case a little faster
-			// (searching only for a match to the "tab view" HWND)
-			bMatch = (m_hWndTabView == pItem->m_hWndTabView);
-		}
-		else
-		{
-			// Do an extensive comparison
-			bMatch = baseClass::MatchItem(pItem, eFlags);
-			if(bMatch && (eFlags & CTFI_TABVIEW) == CTFI_TABVIEW)
-			{
-				bMatch = (m_hWndTabView == pItem->m_hWndTabView);
-			}
 		}
 
 		if(bMatch)
@@ -1252,52 +1152,48 @@ public:
 		if(index >= 0)
 		{
 			DWORD dwStyle = this->GetStyle();
-
-			if(CTCS_DRAGREARRANGE == (dwStyle & CTCS_DRAGREARRANGE))
+			NMCTCITEM nmh = {{ m_hWnd, (UINT_PTR)this->GetDlgCtrlID(), CTCN_BEGINITEMDRAG }, index, {ptDragOrigin.x, ptDragOrigin.y}, 0};
+			if(FALSE != ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM)&nmh))
 			{
-				NMCTCITEM nmh = {{ m_hWnd, (UINT_PTR)this->GetDlgCtrlID(), CTCN_BEGINITEMDRAG }, index, {ptDragOrigin.x, ptDragOrigin.y}, 0};
-				if(FALSE != ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM)&nmh))
+				// Returning non-zero prevents our default handling.
+				// We've possibly already set a couple things that we
+				// need to cleanup, so call StopItemDrag
+				pT->StopItemDrag(false);
+			}
+			else
+			{
+				// returning FALSE let's us do our default handling
+
+				// Mark the beginning of a drag operation.
+				// We should have already done SetCapture, but just
+				// in case, we'll set it again.
+				this->SetCapture();
+
+				// Set focus so that we get an ESC key press
+				pT->SetFocus();
+
+				// This call to DoDragDrop is just to ensure a dependency on OLE32.dll.
+				// In the future, if we support true OLE drag and drop,
+				// we'll really use DoDragDrop.
+				::DoDragDrop(NULL, NULL, 0, 0);
+
+				// To save on resources, we'll load the drag cursor
+				// only when we need it, and destroy it when the drag is done
+				HMODULE hOle32 = ::GetModuleHandle(_T("OLE32.dll"));
+				if(hOle32 != NULL)
 				{
-					// Returning non-zero prevents our default handling.
-					// We've possibly already set a couple things that we
-					// need to cleanup, so call StopItemDrag
-					pT->StopItemDrag(false);
+					// Cursor ID identified using resource editor in Visual Studio
+					int dragCursor = 2;
+					int noDropCursor = 1;
+					m_hCursorMove = ::LoadCursor(hOle32, MAKEINTRESOURCE(dragCursor));
+					m_hCursorNoDrop = ::LoadCursor(hOle32, MAKEINTRESOURCE(noDropCursor));
 				}
-				else
-				{
-					// returning FALSE let's us do our default handling
 
-					// Mark the beginning of a drag operation.
-					// We should have already done SetCapture, but just
-					// in case, we'll set it again.
-					this->SetCapture();
+				m_dwState |= ectcDraggingItem;
 
-					// Set focus so that we get an ESC key press
-					pT->SetFocus();
-
-					// This call to DoDragDrop is just to ensure a dependency on OLE32.dll.
-					// In the future, if we support true OLE drag and drop,
-					// we'll really use DoDragDrop.
-					::DoDragDrop(NULL, NULL, 0, 0);
-
-					// To save on resources, we'll load the drag cursor
-					// only when we need it, and destroy it when the drag is done
-					HMODULE hOle32 = ::GetModuleHandle(_T("OLE32.dll"));
-					if(hOle32 != NULL)
-					{
-						// Cursor ID identified using resource editor in Visual Studio
-						int dragCursor = 2;
-						int noDropCursor = 1;
-						m_hCursorMove = ::LoadCursor(hOle32, MAKEINTRESOURCE(dragCursor));
-						m_hCursorNoDrop = ::LoadCursor(hOle32, MAKEINTRESOURCE(noDropCursor));
-					}
-
-					m_dwState |= ectcDraggingItem;
-
-					m_iDragItem = index;
-					m_iDragItemOriginal = index;
-					m_ptDragOrigin = ptDragOrigin;
-				}
+				m_iDragItem = index;
+				m_iDragItemOriginal = index;
+				m_ptDragOrigin = ptDragOrigin;
 			}
 		}
 	}
@@ -2461,11 +2357,6 @@ public:
 			pT->CalcSize_ScrollButtons(&m_rcTabItemArea);
 		}
 
-		if(CTCS_NEWTABBUTTON == (dwStyle & CTCS_NEWTABBUTTON))
-		{
-			pT->CalcSize_NewTabButton(&m_rcTabItemArea);
-		}
-
 		if(CTCS_SCROLL == (dwStyle & CTCS_SCROLL))
 		{
 			pT->UpdateLayout_ScrollToFit(m_rcTabItemArea);
@@ -2474,6 +2365,11 @@ public:
 		else
 		{
 			pT->UpdateLayout_Default(m_rcTabItemArea);
+		}
+
+		if(CTCS_NEWTABBUTTON == (dwStyle & CTCS_NEWTABBUTTON))
+		{
+			pT->CalcSize_NewTabButton(&m_rcTabItemArea);
 		}
 
 		pT->UpdateTabItemTooltipRects();

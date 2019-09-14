@@ -29,3 +29,6 @@ BOOL IsNamespacePath(const TString& path);
 BOOL IsDiskRootPath(const TString& path);
 
 HWND FindChildWndEx(HWND hwnd, LPCTSTR className, LPCTSTR caption = nullptr);
+
+HIMAGELIST GetSystemImageList(BOOL bLargeIcon);
+int GetShellObjectIcon(LPCITEMIDLIST pidl);
