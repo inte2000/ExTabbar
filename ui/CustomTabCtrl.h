@@ -710,6 +710,7 @@ protected:
 
 // Member variables
 protected:
+    int m_iFixedWidth;
 	int m_iCurSel;
 	int m_iHotItem;
 	CTCSETTINGS m_settings;
@@ -848,7 +849,8 @@ public:
 		m_iDragItemOriginal(-1),
 		m_hCursorMove(NULL),
 		m_hCursorNoDrop(NULL),
-		m_iScrollOffset(0)
+		m_iScrollOffset(0),
+        m_iFixedWidth(120)
 	{
 		::ZeroMemory(&m_settings, sizeof(CTCSETTINGS));
 		::ZeroMemory(&m_ptDragOrigin, sizeof(POINT));

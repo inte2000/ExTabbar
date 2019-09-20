@@ -7,6 +7,7 @@
 #include "ShellGuids.h"
 #include "GuidEx.h"
 #include "ShellBrowserEx.h"
+#include "ExplorerWindow.h" //
 #include "TabbarWindow.h"
 #include "ShellTabItem.h"
 
@@ -49,12 +50,13 @@ CTabbarWindow::CTabbarWindow()
     m_imgDisabled = NULL;
     m_bNavigatedByTab = false;
     m_bInitFirstTabs = true;
+    m_pExplorerWnd = nullptr;
 }
 
-BOOL CTabbarWindow::Initialize(CComPtr<IShellBrowser>& spShellBrowser, HWND hExplorerWnd)
+BOOL CTabbarWindow::Initialize(CComPtr<IShellBrowser>& spShellBrowser, CExplorerWindow* pExplorerWnd)
 {
     m_pBrowser = spShellBrowser;
-    m_hExplorerWnd = hExplorerWnd;
+    m_pExplorerWnd = pExplorerWnd;
 
     m_ShellBrowser.SetIShellBrowser(spShellBrowser);
     if (g_bForceSysListView)
@@ -62,12 +64,12 @@ BOOL CTabbarWindow::Initialize(CComPtr<IShellBrowser>& spShellBrowser, HWND hExp
         m_ShellBrowser.SetUsingListView(true);
     }
 
-    if (!CreateBarWnd(hExplorerWnd))
+    if (!CreateBarWnd(m_pExplorerWnd->GetHwnd()))
     {
         return FALSE;
     }
 
-    SetWindowPos(::GetWindow(m_hExplorerWnd, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    //SetWindowPos(::GetWindow(m_hExplorerWnd, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
     return TRUE;
 }
@@ -316,6 +318,7 @@ BOOL CTabbarWindow::GetCIDLDataByParseName(const TString& parseName, CIDLEx& cid
         if (!m_shlFolderMap.FindFolder(parseName, IdlData))
         {
             //log here
+            return FALSE;
         }
         
         auto rawIdl = IdlData.GetIDLData();
@@ -324,6 +327,8 @@ BOOL CTabbarWindow::GetCIDLDataByParseName(const TString& parseName, CIDLEx& cid
     else
     {
         cidl = CIDLEx::CIDLFromFullPath(parseName);
+        if (cidl.IsEmpty())
+            return FALSE;
         IdlData = CIDListData(&cidl, parseName);
     }
 
@@ -370,6 +375,9 @@ BOOL CTabbarWindow::AddNewTab(const TString& path)
         {
             m_TabCtrl.SetItemData(index, (ULONG_PTR)psti);
         }
+
+        m_bNavigatedByTab = true;
+        m_ShellBrowser.Navigate(cidl);
     }
 
     return TRUE;
@@ -378,28 +386,39 @@ BOOL CTabbarWindow::AddNewTab(const TString& path)
 BOOL CTabbarWindow::NavigateCurrentTab(bool bBack)
 {
     int nItem = m_TabCtrl.GetCurSel();
-    if (nItem >= 0)
+    if (nItem < 0)
+        return FALSE;
+
+    CShellTabItem* psti = (CShellTabItem*)m_TabCtrl.GetItemData(nItem);
+    ATLASSERT(psti != nullptr);
+    std::shared_ptr<CNavigatedPoint> curNp;
+    if (bBack)
+        psti->GoBackward(curNp);
+    else
+        psti->GoForward(curNp);
+
+    CIDLEx cidl = psti->GetCurrentCIdl();
+    ATLASSERT(!cidl.IsEmpty());
+    int iconIdx = GetShellObjectIcon(cidl);
+    m_TabCtrl.SetItemInfo(nItem, iconIdx, curNp->GetTitle().c_str(), curNp->GetTooltip().c_str());
+
+    m_bNavigatedByTab = true;
+    if (m_ShellBrowser.Navigate(cidl) == S_OK)
     {
-        CShellTabItem* psti = (CShellTabItem*)m_TabCtrl.GetItemData(nItem);
-        ATLASSERT(psti != nullptr);
-        std::shared_ptr<CNavigatedPoint> curNp;
-        if (bBack)
-            psti->GoBackward(curNp);
-        else
-            psti->GoForward(curNp);
-
-        m_TabCtrl.SetItemInfo(nItem, -1, curNp->GetTitle().c_str(), curNp->GetTooltip().c_str());
-
+        return TRUE;  //·µ»ØTRUE£¬×èÖ¹ÇÐ»»Ä¿Â¼
     }
-    return TRUE;
+    else
+    {
+        return FALSE; 
+    }
 }
 
 BOOL CTabbarWindow::BeforeNavigate(CIDLEx& target, bool bAutoNav)
 {
     TString parseName = target.GetParseName();
-    m_shlFolderMap.InsertFolder(parseName, target);
     if (!m_bNavigatedByTab)
     {
+        m_shlFolderMap.InsertFolder(parseName, target);
         int nItem = m_TabCtrl.GetCurSel();
         if (nItem >= 0)
         {
@@ -408,6 +427,7 @@ BOOL CTabbarWindow::BeforeNavigate(CIDLEx& target, bool bAutoNav)
         }
     }
 
+    m_curBrowserObj.GetCopyOf(&target, parseName);
     return FALSE; //·µ»ØTRUE£¬×èÖ¹ÇÐ»»Ä¿Â¼
 }
 
@@ -426,16 +446,23 @@ void CTabbarWindow::OnNavigateComplete(const TString& strUrl)
         CShellTabItem* psti = (CShellTabItem*)m_TabCtrl.GetItemData(nItem);
         ATLASSERT(psti != nullptr);
 
-        CIDLEx cidl;
-        CIDListData IdlData;
-        if (!GetCIDLDataByParseName(strUrl, cidl, IdlData))
+        if (!m_bNavigatedByTab)
         {
-            //log here
+            CIDLEx cidl;
+            CIDListData IdlData;
+            if (!GetCIDLDataByParseName(strUrl, cidl, IdlData))
+            {
+                //some special navigate, such as search result, parse from Url while fail
+                ATLASSERT(!m_curBrowserObj.IsEmpty());
+                IdlData = std::move(m_curBrowserObj);
+                auto rawIdl = IdlData.GetIDLData();
+                cidl.CreateByIdListData(std::get<0>(rawIdl), std::get<1>(rawIdl));
+            }
+            psti->NavigatedTo(IdlData, cidl, 0, false);
+            int iconIdx = GetShellObjectIcon(cidl);
+            m_TabCtrl.SetItemInfo(nItem, iconIdx, psti->GetTitle().c_str(), psti->GetTooltip().c_str());
         }
-
-        psti->NavigatedTo(IdlData, cidl, 0, false);
-        int iconIdx = GetShellObjectIcon(cidl);
-        m_TabCtrl.SetItemInfo(nItem, iconIdx, psti->GetTitle().c_str(), psti->GetTooltip().c_str());
+        
         if (m_bNavigatedByTab)
         {
             TString focusPath;
@@ -445,6 +472,10 @@ void CTabbarWindow::OnNavigateComplete(const TString& strUrl)
             {
             }
         }
+        
+        bool canBack = (psti->GetHistoryBackCount() > 1) ? true : false;
+        bool canForward = (psti->GetHistoryForwardCount() > 1) ? true : false;
+        m_pExplorerWnd->UpdateTravelBandButtonState(canBack, canForward);
     }
     m_bNavigatedByTab = false;
 }

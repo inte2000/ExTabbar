@@ -100,9 +100,6 @@
     <ClInclude Include="..\common\DebugLog.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\HookLibManager.h">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="TabbarWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -131,6 +128,12 @@
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\common\ShellFoldersMap.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\HookLibMgmt.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\TravelLogMgmt.h">
       <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>
@@ -186,9 +189,6 @@
     <ClCompile Include="..\common\DebugLog.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\HookLibManager.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
     <ClCompile Include="TabbarWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -220,6 +220,12 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\common\ShellFoldersMap.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\HookLibMgmt.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\TravelLogMgmt.cpp">
       <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>

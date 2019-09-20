@@ -16,16 +16,16 @@ public:
     BOOL Initialize(CComPtr<IShellBrowser>& spShellBrowser, HWND hExplorerWnd);
     void Unintialize();
     void UpdateToolbarStatus();
+    void SetTravelButtonStatus(bool canBack, bool canForward);
     HWND GetHwnd() const { return m_hParentRebarWnd; }
 
 protected:
-    BOOL AddUpButtonToTravelBand(HWND hExplorerWnd);
+    BOOL AddUpButtonToTravelBand(HWND hParentRebarWnd);
     void RemoveUpButtonFromTravelBand();
-    void SetUpButtonStatus(bool bEnable)
+    void SetUpButtonStatus(bool bEnable) //only for win7
     {
         m_Toolbar.SendMessage(TB_ENABLEBUTTON, 1, bEnable ? 1 : 0);
     }
-	
     void ItemCustonDrawRepaint(NMTBCUSTOMDRAW* pDraw);
     LRESULT OnToolbarNotifyCustomDraw(NMTBCUSTOMDRAW* pDraw, BOOL& handled);
     LRESULT OnToolbarNotifyGetToolTip(NMTBGETINFOTIP* pTip, BOOL& handled);

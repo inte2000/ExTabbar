@@ -1148,7 +1148,7 @@ public:
 		long nMinInactiveWidth = 0x7FFFFFFF;
 		long nMaxInactiveWidth = 0;
 
-		//DWORD dwStyle = this->GetStyle();
+		DWORD dwStyle = this->GetStyle();
 
 		WTL::CClientDC dc(m_hWnd);
 		//HFONT hOldFont = dc.SelectFont(lpNMCustomDraw->hFontInactive);
@@ -1192,6 +1192,13 @@ public:
 				rcItem.right += max(lTextSize, m_nMinWidthToDisplayText) + (m_settings.iPadding * 2);
 			}
 			rcItem.right += m_settings.iMargin;
+
+            if ((dwStyle & CTCS_FIXEDWIDTH) == CTCS_FIXEDWIDTH)
+            {
+                if ((rcItem.right - rcItem.left) < m_iFixedWidth)
+                    rcItem.right = rcItem.left + m_iFixedWidth;
+            }
+
 			pItem->SetRect(rcItem);
 			xpos += (rcItem.right - rcItem.left);
 
@@ -1292,7 +1299,7 @@ public:
 
 	void UpdateLayout_ScrollToFit(RECT rcTabItemArea)
 	{
-		//DWORD dwStyle = this->GetStyle();
+		DWORD dwStyle = this->GetStyle();
 
 		// When we scroll to fit, we ignore what's passed in for the
 		// tab item area rect, and use the client rect instead
@@ -1339,6 +1346,13 @@ public:
 				rcItem.right += max(lTextSize, m_nMinWidthToDisplayText) + (m_settings.iPadding * 2);
 			}
 			rcItem.right += m_settings.iMargin;
+
+            if ((dwStyle & CTCS_FIXEDWIDTH) == CTCS_FIXEDWIDTH)
+            {
+                if ((rcItem.right - rcItem.left) < m_iFixedWidth)
+                    rcItem.right = rcItem.left + m_iFixedWidth;
+            }
+
 			pItem->SetRect(rcItem);
 			xpos += (rcItem.right - rcItem.left);
 

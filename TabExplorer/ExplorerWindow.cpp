@@ -96,7 +96,7 @@ CExplorerWindow::CExplorerWindow()
 //class name: ShellTabWindowClass, caption: ´ËµçÄÔ
 
 
-BOOL CExplorerWindow::OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CComPtr<IShellBrowser>& spShellBrowser)
+BOOL CExplorerWindow::OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CComPtr<IShellBrowser>& spShellBrowser, CComPtr<ITravelLogStg>& spTravelLogStg)
 {
     BOOL bRtn = FALSE;
 
@@ -108,11 +108,17 @@ BOOL CExplorerWindow::OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CCo
 
     if (!m_spWebBrowser2 || (m_spWebBrowser2->get_HWND((LONG_PTR*)& m_hExplorerWnd) != S_OK))
     {
+        LogError(_T("ExplorerWindow find explorer window handle faild!"));
         return FALSE;
     }
 
     if (!HookExplorer())
+    {
+        LogError(_T("ExplorerWindow hook explorer faild!"));
         return FALSE;
+    }
+
+    m_TravelLogMgmt.Attach(spTravelLogStg);
 
     HWND hWorkerWnd = FindChildWndEx(m_hExplorerWnd, _T("WorkerW"), nullptr);
     HWND hShellTabWnd = FindChildWndEx(m_hExplorerWnd, _T("ShellTabWindowClass"), nullptr);
@@ -126,7 +132,7 @@ BOOL CExplorerWindow::OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CCo
         LogError(_T("AddressBar subclass shell tab windows faild!"));
         return FALSE;
     }
-    if (!m_TabbarWnd.Initialize(m_spShellBrowser, m_hExplorerWnd))
+    if (!m_TabbarWnd.Initialize(m_spShellBrowser, this))
     {
         LogError(_T("ExplorerWindow create tabbar window faild!"));
         return FALSE;
@@ -162,6 +168,8 @@ BOOL CExplorerWindow::OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CCo
 
     m_AddressBar.SetManaging(true);
     m_ShellTabWnd.SetManaging(true);
+
+    //SetWindowPos(::GetWindow(m_hExplorerWnd, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
     return TRUE;
 }
@@ -226,6 +234,12 @@ void CExplorerWindow::UpdateTabSizeAndPosition(RECT& StwRect)
 
     //m_AddressBar.MovePosition(&rcWorker);
     m_TabbarWnd.MovePosition(rcLocalTab);
+}
+
+void CExplorerWindow::UpdateTravelBandButtonState(bool canBack, bool canForward)
+{
+    m_TravelLogMgmt.ClearTravelLogs();
+    m_TravelBand.SetTravelButtonStatus(canBack, canForward);
 }
 
 BOOL CExplorerWindow::SubclassStatusBar()

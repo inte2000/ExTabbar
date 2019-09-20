@@ -13,13 +13,17 @@ LRESULT CALLBACK CShellTabWindow::ShellTabWndSubclassProc(HWND hWnd, UINT uMsg, 
     CShellTabWindow* pThisView = (CShellTabWindow*)dwRefData;
     ATLASSERT(pThisView != nullptr);
  
+    if (uMsg == 1792)
+    {
+        int sss = 0;
+    }
     if (uMsg == WM_WINDOWPOSCHANGING)
     {
         LRESULT lr = DefSubclassProc(hWnd, uMsg, wParam, lParam);
         pThisView->OnWindowPosChanging((WINDOWPOS*)lParam);
         return lr;
     }
-
+    
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 

@@ -56,6 +56,7 @@ LRESULT CALLBACK CTravelBand::RebarSubclassProc( HWND hWnd, UINT uMsg, WPARAM wP
 	{
         pThisBand->OnToolbarCommand();
 	}
+
 	return DefSubclassProc(hWnd,uMsg,wParam,lParam);
 }
 
@@ -63,11 +64,26 @@ BOOL CTravelBand::Initialize(CComPtr<IShellBrowser>& spShellBrowser, HWND hExplo
 {
     m_spShellBrowser = spShellBrowser;
     
-    //bool bWin7 = IsWindows7() ? true : false;
-    bool bWin7 = true;
+    HWND hTravelBand = FindChildWndEx(hExplorerWnd, L"TravelBand");;
+    LogInfo(_T("CTravelBand find hTravelBand = 0x%08x!"), hTravelBand);
+    if (hTravelBand == NULL)
+    {
+        LogError(_T("CTravelBand can not find hTravelBand!"));
+        return FALSE;
+    }
+
+    HWND toolbar = ::FindWindowEx(hTravelBand, NULL, TOOLBARCLASSNAME, NULL);
+    m_hParentRebarWnd = ::GetParent(hTravelBand);
+    if (m_hParentRebarWnd == NULL)
+    {
+        LogError(_T("CTravelBand can not find hTravelRebar window!"));
+        return FALSE;
+    }
+
+    bool bWin7 = IsWindows7() ? true : false;
     if (bWin7 && g_bAddUpButton)
     {
-        m_bUpToolbarAdd = AddUpButtonToTravelBand(hExplorerWnd);
+        m_bUpToolbarAdd = AddUpButtonToTravelBand(m_hParentRebarWnd);
     }
     
     return m_bUpToolbarAdd;
@@ -112,6 +128,21 @@ void CTravelBand::UpdateToolbarStatus()
     SetUpButtonStatus(bEnableUp);
 }
 
+void CTravelBand::SetTravelButtonStatus(bool canBack, bool canForward)
+{
+    HWND hTravelBand = FindChildWndEx(m_hParentRebarWnd, L"TravelBand");;
+    if (hTravelBand != NULL)
+    {
+        HWND toolbar = FindWindowEx(hTravelBand, NULL, TOOLBARCLASSNAME, NULL);
+        if (toolbar != NULL)
+        {
+            ::SendMessage(toolbar, TB_ENABLEBUTTON, 0x100, MAKELPARAM((canBack ? 1 : 0), 0));
+            ::SendMessage(toolbar, TB_ENABLEBUTTON, 0x101, MAKELPARAM((canForward ? 1 : 0), 0));
+            ::SendMessage(toolbar, TB_ENABLEBUTTON, 0x102, MAKELPARAM(((canBack || canForward) ? 1 : 0), 0));
+        }
+    }
+}
+
 /*
 ReBar
    TravelBand
@@ -120,68 +151,58 @@ ReBar
    UpBand (win10 only)
        Toolbar  "向上一级工具栏"
 */
-BOOL CTravelBand::AddUpButtonToTravelBand(HWND hExplorerWnd)
+BOOL CTravelBand::AddUpButtonToTravelBand(HWND hParentRebarWnd)
 {
     // for win7, we find the TravelBand, the rebar and the toolbar. win10 has UpBand, do the same things
-    HWND hTravelBand = hTravelBand = FindChildWndEx(hExplorerWnd, L"TravelBand");;
-    LogInfo(_T("CTravelBand find hTravelBand = 0x%08x!"), hTravelBand);
-    if (hTravelBand)
+    int size = g_nUpButtonIconSize;
+    DWORD dwStyle = WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | TBSTYLE_CUSTOMERASE | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE;
+    m_Toolbar = CreateWindow(TOOLBARCLASSNAME, L"UpButton", dwStyle, 0, 0, 10, 10, m_hParentRebarWnd, NULL, g_Instance, NULL);
+    m_Toolbar.SendMessage(TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_MIXEDBUTTONS);
+    m_Toolbar.SendMessage(TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON));
+    m_Toolbar.SendMessage(TB_SETMAXTEXTROWS, 1);
+
+    HMODULE hShell32 = GetModuleHandle(L"Shell32.dll");
+    std::vector<HMODULE> modules;
+    LPCTSTR str = NULL;// FindSetting("UpIconNormal");  "shell32.dll,46"
+    if (str != NULL)
     {
-        HWND toolbar = FindWindowEx(hTravelBand, NULL, TOOLBARCLASSNAME, NULL);
-        RECT rc;
-        GetClientRect(toolbar, &rc);
-        m_hParentRebarWnd = GetParent(hTravelBand);
-        int size = g_nUpButtonIconSize;
-        m_Toolbar = CreateWindow(TOOLBARCLASSNAME, L"UpButton", WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | TBSTYLE_CUSTOMERASE | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE, 0, 0, 10, 10, m_hParentRebarWnd, NULL, g_Instance, NULL);
-        m_Toolbar.SendMessage(TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_MIXEDBUTTONS);
-        m_Toolbar.SendMessage(TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON));
-        m_Toolbar.SendMessage(TB_SETMAXTEXTROWS, 1);
-
-        HMODULE hShell32 = GetModuleHandle(L"Shell32.dll");
-        std::vector<HMODULE> modules;
-        LPCTSTR str = NULL;// FindSetting("UpIconNormal");  "shell32.dll,46"
-        if (str != NULL)
-        {
-            m_IconNormal = str ? WzLoadIcon(size, str, 0, modules, hShell32) : NULL;
-            str = NULL;// FindSetting("UpIconHot");
-            m_IconHot = str ? WzLoadIcon(size, str, 0, modules, NULL) : NULL;
-            str = NULL;// FindSetting("UpIconPressed");
-            m_IconPressed = str ? WzLoadIcon(size, str, 0, modules, NULL) : NULL;
-            str = NULL;// FindSetting("UpIconDisabled");
-            m_IconDisabled = str ? WzLoadIcon(size, str, 0, modules, NULL) : NULL;
-            if (!m_IconDisabled)
-                m_IconDisabled = CreateDisabledIcon(m_IconNormal, size);
-        }
-        else
-        {
-            m_IconNormal = (HICON)LoadImage(g_Instance, MAKEINTRESOURCE(IDI_UP2NORMAL), IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
-            m_IconHot = (HICON)LoadImage(g_Instance, MAKEINTRESOURCE(IDI_UP2HOT), IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
-            m_IconPressed = (HICON)LoadImage(g_Instance, MAKEINTRESOURCE(IDI_UP2PRESSED), IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
-            m_IconDisabled = (HICON)LoadImage(g_Instance, MAKEINTRESOURCE(IDI_UP2DISABLED), IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
-        }
-
-        for (std::vector<HMODULE>::const_iterator it = modules.begin(); it != modules.end(); ++it)
-            FreeLibrary(*it);
-
-        TBBUTTON button = { I_IMAGENONE,1,TBSTATE_ENABLED };
-        m_Toolbar.SendMessage(TB_ADDBUTTONS, 1, (LPARAM)& button);
-        m_Toolbar.SendMessage(TB_SETBUTTONSIZE, 0, MAKELONG(size, size));
-
-        ::SetWindowSubclass(m_hParentRebarWnd, RebarSubclassProc, m_RebarSubclassId, (DWORD_PTR)this);
-        REBARBANDINFO info = { sizeof(info),RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_SIZE | RBBIM_STYLE };
-        SendMessage(m_hParentRebarWnd, RB_GETBANDINFO, 1, (LPARAM)& info);
-        info.fStyle = RBBS_HIDETITLE | RBBS_NOGRIPPER | RBBS_FIXEDSIZE;
-        info.hwndChild = m_Toolbar.m_hWnd;
-        info.cxIdeal = info.cx = info.cxMinChild = size;
-        info.cyMinChild = size;
-        SendMessage(m_hParentRebarWnd, RB_INSERTBAND, 1, (LPARAM)& info);
-        RedrawWindow(m_hParentRebarWnd, NULL, NULL, RDW_UPDATENOW | RDW_ALLCHILDREN);
-
-        LogInfo(_T("CTravelBand create up button toolbar success!"));
-        return TRUE;
+        m_IconNormal = str ? WzLoadIcon(size, str, 0, modules, hShell32) : NULL;
+        str = NULL;// FindSetting("UpIconHot");
+        m_IconHot = str ? WzLoadIcon(size, str, 0, modules, NULL) : NULL;
+        str = NULL;// FindSetting("UpIconPressed");
+        m_IconPressed = str ? WzLoadIcon(size, str, 0, modules, NULL) : NULL;
+        str = NULL;// FindSetting("UpIconDisabled");
+        m_IconDisabled = str ? WzLoadIcon(size, str, 0, modules, NULL) : NULL;
+        if (!m_IconDisabled)
+            m_IconDisabled = CreateDisabledIcon(m_IconNormal, size);
+    }
+    else
+    {
+        m_IconNormal = (HICON)LoadImage(g_Instance, MAKEINTRESOURCE(IDI_UP2NORMAL), IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
+        m_IconHot = (HICON)LoadImage(g_Instance, MAKEINTRESOURCE(IDI_UP2HOT), IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
+        m_IconPressed = (HICON)LoadImage(g_Instance, MAKEINTRESOURCE(IDI_UP2PRESSED), IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
+        m_IconDisabled = (HICON)LoadImage(g_Instance, MAKEINTRESOURCE(IDI_UP2DISABLED), IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
     }
 
-    return FALSE;
+    for (std::vector<HMODULE>::const_iterator it = modules.begin(); it != modules.end(); ++it)
+        FreeLibrary(*it);
+
+    TBBUTTON button = { I_IMAGENONE,1,TBSTATE_ENABLED };
+    m_Toolbar.SendMessage(TB_ADDBUTTONS, 1, (LPARAM)& button);
+    m_Toolbar.SendMessage(TB_SETBUTTONSIZE, 0, MAKELONG(size, size));
+
+    ::SetWindowSubclass(m_hParentRebarWnd, RebarSubclassProc, m_RebarSubclassId, (DWORD_PTR)this);
+    REBARBANDINFO info = { sizeof(info),RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_SIZE | RBBIM_STYLE };
+    SendMessage(m_hParentRebarWnd, RB_GETBANDINFO, 1, (LPARAM)& info);
+    info.fStyle = RBBS_HIDETITLE | RBBS_NOGRIPPER | RBBS_FIXEDSIZE;
+    info.hwndChild = m_Toolbar.m_hWnd;
+    info.cxIdeal = info.cx = info.cxMinChild = size;
+    info.cyMinChild = size;
+    SendMessage(m_hParentRebarWnd, RB_INSERTBAND, 1, (LPARAM)& info);
+    RedrawWindow(m_hParentRebarWnd, NULL, NULL, RDW_UPDATENOW | RDW_ALLCHILDREN);
+
+    LogInfo(_T("CTravelBand create up button toolbar success!"));
+    return TRUE;
 }
 
 void CTravelBand::RemoveUpButtonFromTravelBand()

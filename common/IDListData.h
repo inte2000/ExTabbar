@@ -15,6 +15,9 @@ public:
     CIDListData(unsigned char* pData, int dataSize, const TString& path);
     ~CIDListData() { Release(); }
 
+    bool IsEmpty() const { return (m_pData == nullptr); }
+    bool GetCopyOf(const CIDLEx* pcidl);
+    bool GetCopyOf(const CIDLEx* pcidl, const TString& path);
     bool IsSame(const CIDListData& data);
     const TString& GetPath() const { return m_path; }
     std::tuple<const unsigned char*, int> GetIDLData() const { return { m_pData, m_dataSize}; }

@@ -11,11 +11,11 @@ typedef int (*fpInitialize)(CallbackStruct* cb);
 typedef int (*fpDispose)();
 typedef int (*fpInitShellBrowserHook)(IShellBrowser* psb);
 
-class HookLibManager final
+class HookLibMgmt final
 {
 public:
-    HookLibManager() { InitInternalData(); }
-    ~HookLibManager() { UnloadHookLib(); }
+    HookLibMgmt() { InitInternalData(); }
+    ~HookLibMgmt() { UnloadHookLib(); }
     
     bool LoadHookLib(HMODULE hAppMod);
     void UnloadHookLib();
@@ -35,4 +35,4 @@ private:
     fpInitShellBrowserHook m_DllInitShellBrowserHook;
 };
 
-HookLibManager& GetHookMgmt();
+HookLibMgmt& GetHookMgmt();

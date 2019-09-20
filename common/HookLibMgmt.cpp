@@ -1,10 +1,10 @@
 #include "pch.h"
 #include "framework.h"
-#include "HookLibManager.h"
+#include "HookLibMgmt.h"
 #include "SystemFunctions.h"
 
 
-bool HookLibManager::LoadHookLib(HMODULE hAppMod)
+bool HookLibMgmt::LoadHookLib(HMODULE hAppMod)
 {
     TString hookDllPathName = GetAppPathName(hAppMod, _T("ETHookLib.dll"));
     HMODULE hHookDll = ::LoadLibrary(hookDllPathName.c_str());
@@ -27,7 +27,7 @@ bool HookLibManager::LoadHookLib(HMODULE hAppMod)
     return true;
 }
 
-void HookLibManager::UnloadHookLib()
+void HookLibMgmt::UnloadHookLib()
 {
     if (m_hHookDll == NULL)
         return;
@@ -41,7 +41,7 @@ void HookLibManager::UnloadHookLib()
 }
 
 //interface
-int HookLibManager::Initialize(CallbackStruct* cb)
+int HookLibMgmt::Initialize(CallbackStruct* cb)
 {
     int rtn = -1;
 
@@ -54,7 +54,7 @@ int HookLibManager::Initialize(CallbackStruct* cb)
     return rtn;
 }
 
-int HookLibManager::Dispose()
+int HookLibMgmt::Dispose()
 {
     int rtn = -1;
 
@@ -67,7 +67,7 @@ int HookLibManager::Dispose()
     return rtn;
 }
 
-int HookLibManager::InitShellBrowserHook(IShellBrowser* psb)
+int HookLibMgmt::InitShellBrowserHook(IShellBrowser* psb)
 {
     int rtn = -1;
 
@@ -79,7 +79,7 @@ int HookLibManager::InitShellBrowserHook(IShellBrowser* psb)
     return rtn;
 }
 
-void HookLibManager::InitInternalData()
+void HookLibMgmt::InitInternalData()
 {
     m_DllInitialize = nullptr;
     m_hHookDll = NULL;
@@ -88,9 +88,9 @@ void HookLibManager::InitInternalData()
     m_libInitlized = false;
 }
 
-static HookLibManager s_hookMng;
+static HookLibMgmt s_hookMng;
 
-HookLibManager& GetHookMgmt()
+HookLibMgmt& GetHookMgmt()
 {
     return s_hookMng;
 }

@@ -236,7 +236,7 @@
   <ItemGroup>
     <ClInclude Include="..\common\DebugLog.h" />
     <ClInclude Include="..\common\GuidEx.h" />
-    <ClInclude Include="..\common\HookLibManager.h" />
+    <ClInclude Include="..\common\HookLibMgmt.h" />
     <ClInclude Include="..\common\IDListData.h" />
     <ClInclude Include="..\common\NavigatedPoint.h" />
     <ClInclude Include="..\common\PrivateMessage.h" />
@@ -248,6 +248,7 @@
     <ClInclude Include="..\common\ShellWrapper.h" />
     <ClInclude Include="..\common\SystemFolders.h" />
     <ClInclude Include="..\common\SystemFunctions.h" />
+    <ClInclude Include="..\common\TravelLogMgmt.h" />
     <ClInclude Include="..\ui\atlgdix.h" />
     <ClInclude Include="..\ui\CustomTabCtrl.h" />
     <ClInclude Include="..\ui\DotNetTabCtrl.h" />
@@ -274,7 +275,7 @@
   <ItemGroup>
     <ClCompile Include="..\common\DebugLog.cpp" />
     <ClCompile Include="..\common\GuidEx.cpp" />
-    <ClCompile Include="..\common\HookLibManager.cpp" />
+    <ClCompile Include="..\common\HookLibMgmt.cpp" />
     <ClCompile Include="..\common\IDListData.cpp" />
     <ClCompile Include="..\common\NavigatedPoint.cpp" />
     <ClCompile Include="..\common\PrivateMessage.cpp" />
@@ -286,6 +287,7 @@
     <ClCompile Include="..\common\ShellWrapper.cpp" />
     <ClCompile Include="..\common\SystemFolders.cpp" />
     <ClCompile Include="..\common\SystemFunctions.cpp" />
+    <ClCompile Include="..\common\TravelLogMgmt.cpp" />
     <ClCompile Include="AddressBar.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>

@@ -10,7 +10,7 @@
 #include "SystemFunctions.h"
 #include "ShellFunctions.h"
 #include "DebugLog.h"
-#include "HookLibManager.h"
+#include "HookLibMgmt.h"
 
 
 // CTabExplorerBHO - a browser helper object that implements Alt+Enter for the folder tree
@@ -25,12 +25,27 @@ HRESULT STDMETHODCALLTYPE CTabExplorerBHO::SetSite( IUnknown *pUnkSite )
 		CComQIPtr<IServiceProvider> pProvider = pUnkSite;
 		if (pProvider)
 		{
+            CComPtr<ITravelLogStg> spTravelLogStg;
+
             pProvider->QueryService(SID_SWebBrowserApp, IID_IWebBrowser2, (void**)& m_spWebBrowser2);
             pProvider->QueryService(SID_SShellBrowser,IID_IShellBrowser,(void**)& m_spShellBrowser);
-
-            GetHookMgmt().InitShellBrowserHook(m_spShellBrowser);
-            if (!m_ExplorerWnd.OnExplorerAttach(m_spWebBrowser2, m_spShellBrowser))
+            pProvider->QueryService(SID_STravelLogCursor, IID_ITravelLogStg,(void**)& spTravelLogStg);
+            
+            if (!m_spWebBrowser2 || !m_spShellBrowser || !spTravelLogStg)
             {
+                LogFatalErr(_T("TabExplorerBHO SetSite(%p) fail to query service object"), pUnkSite);
+                return E_FAIL;
+            }
+
+            int hkRtn = GetHookMgmt().InitShellBrowserHook(m_spShellBrowser);
+            if (hkRtn != 0)
+            {
+                LogFatalErr(_T("TabExplorerBHO fail to hook shell browser"));
+                return E_FAIL;
+            }
+            if (!m_ExplorerWnd.OnExplorerAttach(m_spWebBrowser2, m_spShellBrowser, spTravelLogStg))
+            {
+                LogFatalErr(_T("TabExplorerBHO fail to attach explorer window"));
                 return E_FAIL;
             }
 

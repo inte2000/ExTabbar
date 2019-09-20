@@ -32,7 +32,7 @@ public:
     const TString& GetCurrentPath() { return m_CurNp->GetCurrent().GetPath(); }
     const TString& GetTitle() { return m_CurNp->GetTitle(); }
     const TString& GetTooltip() { return m_CurNp->GetTooltip(); }
-
+    CIDLEx GetCurrentCIdl() const;
 protected:
     void ReleaseStatus();
 

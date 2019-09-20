@@ -8,6 +8,7 @@
 #include "StatusBar.h"
 #include "ShellTabWindow.h"
 #include "AddressBar.h"
+#include "TravelLogMgmt.h"
 
 class CExplorerWindow final
 {
@@ -15,13 +16,14 @@ public:
     CExplorerWindow();
     ~CExplorerWindow() {}
 	
-	BOOL OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CComPtr<IShellBrowser>& spShellBrowser);
+	BOOL OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CComPtr<IShellBrowser>& spShellBrowser, CComPtr<ITravelLogStg>& spTravelLogStg);
     void OnExplorerDetach();
     HRESULT OnBeforeNavigate(const TString& strUrl);
     void OnNavigateComplete(const TString& strUrl);
     HWND GetHwnd() const { return m_hExplorerWnd; }
     void UpdateTabSizeAndPosition(RECT &StwRect);
     int GetTabbarHeight() const { return m_iTabbarHeight; }
+    void UpdateTravelBandButtonState(bool canBack, bool canForward);
 protected:
     BOOL SubclassStatusBar();
     BOOL SubclassLeftTree(HWND hTreeView);
@@ -46,6 +48,7 @@ protected:
 
     CComPtr<IWebBrowser2> m_spWebBrowser2;
 	CComPtr<IShellBrowser> m_spShellBrowser;
+    CTravelLogMgmt m_TravelLogMgmt;
 
 public:
     static CExplorerWindow *m_pThisExplorer;

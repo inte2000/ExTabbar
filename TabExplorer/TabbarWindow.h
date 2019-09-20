@@ -39,6 +39,8 @@ enum
     ID_CUSTOM = 100,
 };
 
+class CExplorerWindow;
+
 class CTabbarWindow : public CWindowImpl<CTabbarWindow>
 {
 public:
@@ -47,7 +49,7 @@ public:
     DECLARE_WND_CLASS(L"TabExplorer.CTabbarWindow")
 
     HWND GetToolbar(void) { return m_Toolbar.m_hWnd; }
-    BOOL Initialize(CComPtr<IShellBrowser>& spShellBrowser, HWND hExplorerWnd);
+    BOOL Initialize(CComPtr<IShellBrowser>& spShellBrowser, CExplorerWindow* pExplorerWnd);
     void Unintialize();
     void UpdateToolbar(void);
 
@@ -133,11 +135,13 @@ private:
     CSystemFolders m_sysFolder;
     CShellFoldersMap m_shlFolderMap;
     CShellBrowserEx m_ShellBrowser;
-    //for explorer
-    HWND m_hExplorerWnd;
+    
+    //for parent explorer window
+    CExplorerWindow *m_pExplorerWnd;
 
     bool m_bNavigatedByTab;
     bool m_bInitFirstTabs;
+    CIDListData m_curBrowserObj; //get at BeforeNavigate(), and used at OnNavigateComplete()
 
     void SendShellTabCommand(int command);
 

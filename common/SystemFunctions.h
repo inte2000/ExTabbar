@@ -32,3 +32,4 @@ HWND FindChildWndEx(HWND hwnd, LPCTSTR className, LPCTSTR caption = nullptr);
 
 HIMAGELIST GetSystemImageList(BOOL bLargeIcon);
 int GetShellObjectIcon(LPCITEMIDLIST pidl);
+TString TStringFromWStr(LPWSTR wstr);

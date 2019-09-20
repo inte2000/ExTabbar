@@ -7,7 +7,7 @@
 #include "dllmain.h"
 #include "DebugLog.h"
 #include "SystemFunctions.h"
-#include "HookLibManager.h"
+#include "HookLibMgmt.h"
 #include "PrivateMessage.h"
 
 CTabExplorerModule _AtlModule;

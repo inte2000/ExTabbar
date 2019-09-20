@@ -405,6 +405,18 @@ int GetShellObjectIcon(LPCITEMIDLIST pidl)
     return -1;
 }
 
+TString TStringFromWStr(LPWSTR wstr)
+{
+    TString strRtn;
+#ifdef UNICODE
+    strRtn = wstr;
+#else
+    //don't forget ...
+#endif
+
+    return std::move(strRtn);
+}
+
 /*
 template<class T>
 void ClearStack(std::stack<T>& stk)

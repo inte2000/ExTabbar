@@ -27,6 +27,28 @@ CIDListData::CIDListData(unsigned char* pData, int dataSize, const TString& path
     }
 }
 
+bool CIDListData::GetCopyOf(const CIDLEx* pcidl)
+{
+    Release();
+    if (!pcidl->IsEmpty())
+    {
+        m_pData = pcidl->GetIDListData(m_dataSize);
+    }
+
+    return (m_pData != nullptr);
+}
+
+bool CIDListData::GetCopyOf(const CIDLEx* pcidl, const TString& path)
+{
+    if (GetCopyOf(pcidl))
+    {
+        m_path = path;
+        return true;
+    }
+
+    return false;
+}
+
 bool CIDListData::IsSame(const CIDListData& data)
 {
     if (m_path.compare(data.m_path) == 0)

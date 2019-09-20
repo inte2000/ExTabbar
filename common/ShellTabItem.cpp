@@ -118,6 +118,18 @@ void CShellTabItem::ClearCurrentStatus()
     ReleaseStatus();
 }
 
+CIDLEx CShellTabItem::GetCurrentCIdl() const
+{
+    CIDLEx tmpIdl;
+    
+    if (m_CurNp != nullptr)
+    {
+        auto idlData = m_CurNp->GetCurrent().GetIDLData();
+        tmpIdl.CreateByIdListData(std::get<0>(idlData), std::get<1>(idlData));
+    }
+    return std::move(tmpIdl);
+}
+
 void CShellTabItem::ReleaseStatus()
 {
     m_focusPath.clear();
