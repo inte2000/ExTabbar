@@ -95,6 +95,11 @@ CExplorerWindow::CExplorerWindow()
 //class name: UIRibbonCommandBarDock, caption: UIRibbonDockTop
 //class name: ShellTabWindowClass, caption: ´ËµçÄÔ
 
+void CExplorerWindow::CloseExplorerWindow()
+{
+    if (m_spWebBrowser2)
+        m_spWebBrowser2->Quit();
+}
 
 BOOL CExplorerWindow::OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CComPtr<IShellBrowser>& spShellBrowser, CComPtr<ITravelLogStg>& spTravelLogStg)
 {
@@ -236,11 +241,27 @@ void CExplorerWindow::UpdateTabSizeAndPosition(RECT& StwRect)
     m_TabbarWnd.MovePosition(rcLocalTab);
 }
 
-void CExplorerWindow::UpdateTravelBandButtonState(bool canBack, bool canForward)
+bool CExplorerWindow::SetTravelBandLogEntries(const std::vector<CNavigatedPoint>& logs, const CNavigatedPoint& curItem, bool bTravelToCurrent)
 {
     m_TravelLogMgmt.ClearTravelLogs();
-    m_TravelBand.SetTravelButtonStatus(canBack, canForward);
+
+    if (!m_TravelLogMgmt.SetTravelLog(logs, curItem, bTravelToCurrent))
+    {
+        LogError(_T("CExplorerWindow set current travel log fail!"));
+        return false;
+    }
+
+    return true;
 }
+
+void CExplorerWindow::GetTravelBandLogEntries(std::vector<CNavigatedPoint>& logs, int maxWanted, CNavigatedPoint& curItem) const
+{
+    if (!m_TravelLogMgmt.GetTravelLog(logs, maxWanted, curItem))
+    {
+        LogError(_T("CExplorerWindow get current travel log fail!"));
+    }
+}
+
 
 BOOL CExplorerWindow::SubclassStatusBar()
 {

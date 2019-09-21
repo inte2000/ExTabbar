@@ -24,6 +24,8 @@ BOOL g_bTabNewButton = TRUE;
 BOOL g_bTabCloseButton = TRUE;
 BOOL g_bTabAutoHideButtons = TRUE;
 BOOL g_bForceSysListView = TRUE;
+BOOL g_bSwitchNewTab = FALSE; //立即切换到新打开的tab标签
+BOOL g_bNewTabInsertBegin = FALSE; //新标签插入在所有标签最前面
 
 // CTabbarBandWindow - the parent window of the toolbar
 struct StdToolbarItem
@@ -367,17 +369,26 @@ BOOL CTabbarWindow::AddNewTab(const TString& path)
         if (!GetCIDLDataByParseName(path, cidl, IdlData))
         {
         }
-        
-        psti->NavigatedTo(IdlData, cidl, -1, true);
+
+        int nInsertItem;
+        if (g_bNewTabInsertBegin)
+            nInsertItem = 0;
+        else
+            nInsertItem = m_TabCtrl.GetItemCount();
+
+        psti->NavigatedTo(IdlData, cidl, path);
         int iconIdx = GetShellObjectIcon(cidl);
-        int index = m_TabCtrl.InsertItem(0, psti->GetTitle().c_str(), iconIdx, psti->GetTooltip().c_str());
+        int index = m_TabCtrl.InsertItem(nInsertItem, psti->GetTitle().c_str(), iconIdx, psti->GetTooltip().c_str());
         if (index >= 0)
         {
             m_TabCtrl.SetItemData(index, (ULONG_PTR)psti);
         }
 
-        m_bNavigatedByTab = true;
-        m_ShellBrowser.Navigate(cidl);
+        if(g_bSwitchNewTab)
+            m_TabCtrl.SetCurSel(index);
+
+        //m_bNavigatedByTab = true;
+        //m_ShellBrowser.Navigate(cidl);
     }
 
     return TRUE;
@@ -391,26 +402,10 @@ BOOL CTabbarWindow::NavigateCurrentTab(bool bBack)
 
     CShellTabItem* psti = (CShellTabItem*)m_TabCtrl.GetItemData(nItem);
     ATLASSERT(psti != nullptr);
-    std::shared_ptr<CNavigatedPoint> curNp;
-    if (bBack)
-        psti->GoBackward(curNp);
-    else
-        psti->GoForward(curNp);
 
-    CIDLEx cidl = psti->GetCurrentCIdl();
-    ATLASSERT(!cidl.IsEmpty());
-    int iconIdx = GetShellObjectIcon(cidl);
-    m_TabCtrl.SetItemInfo(nItem, iconIdx, curNp->GetTitle().c_str(), curNp->GetTooltip().c_str());
+    LogTrace(_T("CTabbarWindow::NavigateCurrentTab(), back = %d"), bBack ? 1 : 0);
 
-    m_bNavigatedByTab = true;
-    if (m_ShellBrowser.Navigate(cidl) == S_OK)
-    {
-        return TRUE;  //返回TRUE，阻止切换目录
-    }
-    else
-    {
-        return FALSE; 
-    }
+    return FALSE; //返回TRUE可阻止切换目录
 }
 
 BOOL CTabbarWindow::BeforeNavigate(CIDLEx& target, bool bAutoNav)
@@ -458,7 +453,7 @@ void CTabbarWindow::OnNavigateComplete(const TString& strUrl)
                 auto rawIdl = IdlData.GetIDLData();
                 cidl.CreateByIdListData(std::get<0>(rawIdl), std::get<1>(rawIdl));
             }
-            psti->NavigatedTo(IdlData, cidl, 0, false);
+            psti->NavigatedTo(IdlData, cidl, strUrl);
             int iconIdx = GetShellObjectIcon(cidl);
             m_TabCtrl.SetItemInfo(nItem, iconIdx, psti->GetTitle().c_str(), psti->GetTooltip().c_str());
         }
@@ -472,10 +467,6 @@ void CTabbarWindow::OnNavigateComplete(const TString& strUrl)
             {
             }
         }
-        
-        bool canBack = (psti->GetHistoryBackCount() > 1) ? true : false;
-        bool canForward = (psti->GetHistoryForwardCount() > 1) ? true : false;
-        m_pExplorerWnd->UpdateTravelBandButtonState(canBack, canForward);
     }
     m_bNavigatedByTab = false;
 }
@@ -917,6 +908,37 @@ LRESULT CTabbarWindow::OnTabctrlNewTabButton(int idCtrl, LPNMHDR pnmh, BOOL& bHa
     return 0;
 }
 
+LRESULT CTabbarWindow::OnTabctrlCloseButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+{
+    ATLASSERT(m_pExplorerWnd != nullptr);
+
+    NMCTCITEM* pNtItem = reinterpret_cast<NMCTCITEM*>(pnmh);
+
+    if (pNtItem->iItem >= 0)
+    {
+        int nItemCount = m_TabCtrl.GetItemCount();
+        if (nItemCount == 1) //last tab，should give an alert to close explorer window?
+        {
+        }
+        else
+        {
+            int nCurSel = m_TabCtrl.GetCurSel();
+            if (nCurSel == pNtItem->iItem)
+            {
+                if (pNtItem->iItem == (nItemCount - 1))
+                    m_TabCtrl.SetCurSel(pNtItem->iItem - 1);
+                else
+                    m_TabCtrl.SetCurSel(pNtItem->iItem + 1);
+            }
+        }
+        m_TabCtrl.DeleteItem(pNtItem->iItem);
+        if (m_TabCtrl.GetItemCount() <= 0)
+            m_pExplorerWnd->CloseExplorerWindow();
+    }
+
+    return 0;
+}
+
 LRESULT CTabbarWindow::OnTabctrlSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {
     NMCTC2ITEMS* pNmItem = reinterpret_cast<NMCTC2ITEMS *>(pnmh);
@@ -933,14 +955,25 @@ LRESULT CTabbarWindow::OnTabctrlSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandl
             TString focusPath = focusItem.GetParseName();
             psti->SetCurrentStatus(focusPath, selectedItems);
         }
+
+        std::vector<CNavigatedPoint> logs;
+        CNavigatedPoint curItem;
+        m_pExplorerWnd->GetTravelBandLogEntries(logs, 32, curItem);
+        psti->SetTravelLogs(logs);
     }
     CShellTabItem * pti = (CShellTabItem *)m_TabCtrl.GetItemData(pNmItem->iItem2);
     if (pti != NULL)
     {
         m_bNavigatedByTab = true;
-        auto curRawIdl = pti->GetCurrentIDLData();
-        CIDLEx cidl(std::get<0>(curRawIdl), std::get<1>(curRawIdl));
-        m_ShellBrowser.Navigate(cidl);
+
+        CNavigatedPoint curItem;
+        const std::vector<CNavigatedPoint>& logs = pti->GetTravelLogs(curItem);
+        if (!m_pExplorerWnd->SetTravelBandLogEntries(logs, curItem, true))
+        {
+            auto curRawIdl = pti->GetCurrentIDLData();
+            CIDLEx cidl(std::get<0>(curRawIdl), std::get<1>(curRawIdl));
+            m_ShellBrowser.Navigate(cidl);
+        }
     }
 
     return 0;

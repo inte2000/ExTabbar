@@ -1365,8 +1365,7 @@ public:
 		DWORD dwBefore = m_dwState & ectcHotTrack;
 
 		T* pT = static_cast<T*>(this);
-		if(ectcMouseInWindow != (m_dwState & ectcMouseInWindow))
-		{
+		if(ectcMouseInWindow != (m_dwState & ectcMouseInWindow))		{
 			TRACKMOUSEEVENT tme = { 0 };
 			tme.cbSize = sizeof(tme);
 			tme.dwFlags = TME_LEAVE;
@@ -1558,6 +1557,7 @@ public:
 						m_iHotItem = nIndex;
 
 						m_dwState |= ectcHotTrack_TabItem;
+                        //this->HighlightItem(nIndex, true);
 						RECT rcItem = {0};
 						this->GetItemRect(nIndex, &rcItem);
 						this->InvalidateRect(&rcItem);
@@ -2873,6 +2873,10 @@ public:
 		}
 
 		m_Items.InsertAt((size_t)nItem, pItem);
+
+        //orbit  2019/09/20
+        if ((m_iCurSel >= 0) && (nItem <= m_iCurSel))
+            m_iCurSel++;
 
 		size_t nNewCount = m_Items.GetCount();
 

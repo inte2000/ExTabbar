@@ -7,6 +7,7 @@
 #include "SystemFunctions.h"
 #include "ShellBrowserEx.h"
 
+
 void CShellBrowserEx::SetIShellBrowser(CComPtr<IShellBrowser>& spShellBrowser)
 {
     if (m_spShellBrowser != nullptr)

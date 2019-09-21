@@ -16,6 +16,7 @@ public:
     CExplorerWindow();
     ~CExplorerWindow() {}
 	
+    void CloseExplorerWindow();
 	BOOL OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CComPtr<IShellBrowser>& spShellBrowser, CComPtr<ITravelLogStg>& spTravelLogStg);
     void OnExplorerDetach();
     HRESULT OnBeforeNavigate(const TString& strUrl);
@@ -23,7 +24,9 @@ public:
     HWND GetHwnd() const { return m_hExplorerWnd; }
     void UpdateTabSizeAndPosition(RECT &StwRect);
     int GetTabbarHeight() const { return m_iTabbarHeight; }
-    void UpdateTravelBandButtonState(bool canBack, bool canForward);
+    bool SetTravelBandLogEntries(const std::vector<CNavigatedPoint>& logs, const CNavigatedPoint& curItem, bool bTravelToCurrent);
+    void GetTravelBandLogEntries(std::vector<CNavigatedPoint>& logs, int maxWanted, CNavigatedPoint& curItem) const;
+
 protected:
     BOOL SubclassStatusBar();
     BOOL SubclassLeftTree(HWND hTreeView);

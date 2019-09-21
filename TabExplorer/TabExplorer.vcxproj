@@ -235,6 +235,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\common\DebugLog.h" />
+    <ClInclude Include="..\common\DragDropSource.h" />
+    <ClInclude Include="..\common\DragDropTarget.h" />
     <ClInclude Include="..\common\GuidEx.h" />
     <ClInclude Include="..\common\HookLibMgmt.h" />
     <ClInclude Include="..\common\IDListData.h" />
@@ -250,6 +252,7 @@
     <ClInclude Include="..\common\SystemFunctions.h" />
     <ClInclude Include="..\common\TravelLogMgmt.h" />
     <ClInclude Include="..\ui\atlgdix.h" />
+    <ClInclude Include="..\ui\ColorHelper.h" />
     <ClInclude Include="..\ui\CustomTabCtrl.h" />
     <ClInclude Include="..\ui\DotNetTabCtrl.h" />
     <ClInclude Include="..\ui\MemDC.h" />
@@ -288,6 +291,7 @@
     <ClCompile Include="..\common\SystemFolders.cpp" />
     <ClCompile Include="..\common\SystemFunctions.cpp" />
     <ClCompile Include="..\common\TravelLogMgmt.cpp" />
+    <ClCompile Include="..\ui\ColorHelper.cpp" />
     <ClCompile Include="AddressBar.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>

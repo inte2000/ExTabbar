@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "ColorHelper.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // CDotNetTabCtrl - Tab control derived from CCustomTabCtrl
 //    meant to look like the tabs in VS.Net (MDI tabs,
@@ -390,8 +392,8 @@ public:
 	{
         if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
         {
-            rcTab.top += 2;
-            rcTab.bottom -= 2;
+            rcTab.top += 1;
+            rcTab.bottom -= 1;
             rcText.top = rcTab.top + 1 + m_nFontSizeTextTopOffset;
             rcText.bottom = rcTab.bottom;
             //nIconVerticalCenter = rcTab.top + (rc.bottom - rcTab.top) / 2;
@@ -401,7 +403,7 @@ public:
 		else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 		{
 			rcTab.top += 3;
-			rcTab.bottom -= 2;
+			rcTab.bottom -= 1;
 
 			rcText.top = rcTab.top+1 + m_nFontSizeTextTopOffset;
 			rcText.bottom = rcItem.bottom;
@@ -423,27 +425,21 @@ public:
 	void DrawItem_TabSelected(DWORD dwStyle, LPNMCTCCUSTOMDRAW lpNMCustomDraw, RECT& rcTab)
 	{
 		// Tab is selected, so paint tab folder
-
 		bool bHighlighted = (CDIS_MARKED == (lpNMCustomDraw->nmcd.uItemState & CDIS_MARKED));
+        bool bHot = (CDIS_HOT == (lpNMCustomDraw->nmcd.uItemState & CDIS_HOT));
 
 		WTL::CDCHandle dc(lpNMCustomDraw->nmcd.hdc);
 
 		rcTab.right--;
-		if(bHighlighted)
-		{
-			dc.FillSolidRect(&rcTab, lpNMCustomDraw->clrHighlight);
-		}
-		else
-		{
-			dc.FillSolidRect(&rcTab, lpNMCustomDraw->clrSelectedTab);
-		}
 
-		WTL::CPen penText, penHilight;
-		penText.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnText);
-		penHilight.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnHighlight);
+        WTL::CPen penText, penHilight;
+        penText.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnText);
+        penHilight.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnHighlight);
+        COLORREF bgColor = bHot ? LightColor(lpNMCustomDraw->clrSelectedTab, 0.3) : lpNMCustomDraw->clrSelectedTab;
 
         if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
         {
+            dc.FillSolidRect(&rcTab, bgColor);
             WTL::CPenHandle penOld = dc.SelectPen(penText);
 
             dc.MoveTo(rcTab.right, rcTab.top);
@@ -454,61 +450,84 @@ public:
             dc.LineTo(rcTab.right, rcTab.top - 1);
             dc.SelectPen(penOld);
         }
-        else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
-		{
-			WTL::CPenHandle penOld = dc.SelectPen(penText);
+        else if (CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
+        {
+            RECT rcBody = rcTab;
+            rcBody.bottom = rcBody.bottom - 2;
+            RECT rcBottomSign = rcTab;
+            rcBottomSign.top = rcBody.bottom;
+            dc.FillSolidRect(&rcBottomSign, RGB(10, 132, 255));
+            dc.FillSolidRect(&rcBody, bgColor);
 
-			dc.MoveTo(rcTab.right, rcTab.top);
-			dc.LineTo(rcTab.right, rcTab.bottom);
-			dc.LineTo(rcTab.left, rcTab.bottom);
-			dc.SelectPen(penHilight);
-			dc.LineTo(rcTab.left, rcTab.top-1);
+            WTL::CPenHandle penOld = dc.SelectPen(penText);
+            dc.MoveTo(rcBody.right, rcBody.top);
+            dc.LineTo(rcBody.right, rcBody.bottom);
+            dc.LineTo(rcBody.left, rcBody.bottom);
+            dc.SelectPen(penHilight);
+            dc.LineTo(rcBody.left, rcBody.top - 1);
+            dc.SelectPen(penOld);
+        }
+        else
+        {
+            RECT rcTopSign = rcTab;
+            rcTopSign.bottom = rcTopSign.top + 2;
+            RECT rcBody = rcTab;
+            rcBody.top = rcTopSign.bottom;
+            dc.FillSolidRect(&rcTopSign, RGB(10, 132, 255));
+            dc.FillSolidRect(&rcBody, bgColor);
 
-			dc.SelectPen(penOld);
-		}
-		else
-		{
-			WTL::CPenHandle penOld = dc.SelectPen(penHilight);
-
-			dc.MoveTo(rcTab.left, rcTab.bottom - 2);
-			dc.LineTo(rcTab.left, rcTab.top);
-			dc.LineTo(rcTab.right, rcTab.top);
-			dc.SelectPen(penText);
-			dc.MoveTo(rcTab.right, rcTab.top + 1);
-			dc.LineTo(rcTab.right, rcTab.bottom - 2);
-
-			dc.SelectPen(penOld);
-		}
+            WTL::CPenHandle penOld = dc.SelectPen(penHilight);
+            dc.MoveTo(rcBody.left, rcBody.bottom - 2);
+            dc.LineTo(rcBody.left, rcBody.top);
+            dc.LineTo(rcBody.right, rcBody.top);
+            dc.SelectPen(penText);
+            dc.MoveTo(rcBody.right, rcBody.top + 1);
+            dc.LineTo(rcBody.right, rcBody.bottom - 2);
+            dc.SelectPen(penOld);
+        }
 	}
 
 	void DrawItem_TabInactive(DWORD dwStyle, LPNMCTCCUSTOMDRAW lpNMCustomDraw, RECT& rcTab)
 	{
 		// Tab is not selected
-
 		bool bHighlighted = (CDIS_MARKED == (lpNMCustomDraw->nmcd.uItemState & CDIS_MARKED));
+        bool bHot = (CDIS_HOT == (lpNMCustomDraw->nmcd.uItemState & CDIS_HOT));
 
 		int nItem = (int)lpNMCustomDraw->nmcd.dwItemSpec;
 		WTL::CDCHandle dc( lpNMCustomDraw->nmcd.hdc );
 
-		if(bHighlighted)
+        RECT rcBody = rcTab;
+
+        //COLORREF bgColor = bHot ? (lpNMCustomDraw->clrSelectedTab) : lpNMCustomDraw->clrSelectedTab;
+
+		if(bHot)
 		{
             if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
             {
-                RECT rcHighlight = { rcTab.left + 1, rcTab.top + 1, rcTab.right - 2, rcTab.bottom - 1 };
+                //RECT rcHighlight = { rcTab.left + 1, rcTab.top + 1, rcTab.right - 2, rcTab.bottom - 1 };
+                RECT rcHighlight = rcTab;
                 if (nItem - 1 == m_iCurSel) rcHighlight.left += 1;  // Item to the right of the selected tab
-                dc.FillSolidRect(&rcHighlight, lpNMCustomDraw->clrHighlight);
+                dc.FillSolidRect(&rcHighlight, LightColor(lpNMCustomDraw->clrBtnFace, 0.3));
             }
 			else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 			{
-				RECT rcHighlight = {rcTab.left+1, rcTab.top+3, rcTab.right-2, rcTab.bottom-1};
-				if(nItem - 1 == m_iCurSel) rcHighlight.left += 1;  // Item to the right of the selected tab
-				dc.FillSolidRect(&rcHighlight, lpNMCustomDraw->clrHighlight);
+                //RECT rcHighlight = {rcTab.left+1, rcTab.top+3, rcTab.right-2, rcTab.bottom-1};
+				if(nItem - 1 == m_iCurSel) rcBody.left += 1;  // Item to the right of the selected tab
+                RECT rcSign = rcBody;
+                rcBody.bottom -= 2;
+                rcSign.top = rcBody.bottom;
+                dc.FillSolidRect(&rcSign, RGB(192, 192, 192));
+				dc.FillSolidRect(&rcBody, LightColor(lpNMCustomDraw->clrBtnFace, 0.3));
 			}
 			else
 			{
-				RECT rcHighlight = {rcTab.left+1, rcTab.top+2, rcTab.right-2, rcTab.bottom-2};
-				if(nItem - 1 == m_iCurSel) rcHighlight.left += 1;  // Item to the right of the selected tab
-				dc.FillSolidRect(&rcHighlight, lpNMCustomDraw->clrHighlight);
+				//RECT rcHighlight = {rcTab.left+1, rcTab.top+2, rcTab.right-2, rcTab.bottom-2};
+				if(nItem - 1 == m_iCurSel) rcBody.left += 1;  // Item to the right of the selected tab
+                RECT rcSign = rcBody;
+                rcBody.top += 2;
+                rcSign.bottom = rcBody.top;
+                dc.FillSolidRect(&rcSign, RGB(192, 192, 192));
+                dc.FillSolidRect(&rcBody, LightColor(lpNMCustomDraw->clrBtnFace, 0.3));
 			}
 		}
 
@@ -525,20 +544,20 @@ public:
 			WTL::CPenHandle penOld = dc.SelectPen(pen);
             if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
             {
-				dc.MoveTo(rcTab.right-1, rcTab.top + 1);
-				dc.LineTo(rcTab.right-1, rcTab.bottom - 1);
+				dc.MoveTo(rcBody.right-1, rcBody.top + 1);
+				dc.LineTo(rcBody.right-1, rcBody.bottom - 1);
             }
 			else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 			{
 				// Important!  Be sure and keep within "our" tab area horizontally
-				dc.MoveTo(rcTab.right-1, rcTab.top + 3);
-				dc.LineTo(rcTab.right-1, rcTab.bottom - 1);
+				dc.MoveTo(rcBody.right-1, rcBody.top + 3);
+				dc.LineTo(rcBody.right-1, rcBody.bottom - 1);
 			}
 			else
 			{
 				// Important!  Be sure and keep within "our" tab area horizontally
-				dc.MoveTo(rcTab.right-1, rcTab.top + 2);
-				dc.LineTo(rcTab.right-1, rcTab.bottom - 2);
+				dc.MoveTo(rcBody.right-1, rcBody.top + 2);
+				dc.LineTo(rcBody.right-1, rcBody.bottom - 2);
 			}
 			dc.SelectPen(penOld);
 		}
@@ -552,6 +571,7 @@ public:
 		bool bHot = (CDIS_HOT == (lpNMCustomDraw->nmcd.uItemState & CDIS_HOT));
 		int nItem = (int)lpNMCustomDraw->nmcd.dwItemSpec;
 
+        ATLTRACE(_T("DrawImageText(item=%d, highlight=%d, selected=%d, hot=%d)\n"), nItem, bHighlighted, bSelected, bHot);
 		TItem* pItem = this->GetItem(nItem);
 
 		HFONT hOldFont = NULL;
@@ -818,12 +838,17 @@ public:
         int cct = rcN.top + (rcN.bottom - rcN.top) / 2;
 
         WTL::CPen penline;
-        penline.CreatePen(PS_SOLID, 3, crText);
+        penline.CreatePen(PS_SOLID, 1, crText);
         HPEN oldpen = dc.SelectPen(penline);
         dc.MoveTo(ll, cct);
         dc.LineTo(ll + 10, cct);
+        dc.MoveTo(ll, cct - 1);
+        dc.LineTo(ll + 10, cct - 1);
+
         dc.MoveTo(ccl, tt);
         dc.LineTo(ccl, tt + 10);
+        dc.MoveTo(ccl - 1, tt);
+        dc.LineTo(ccl - 1, tt + 10);
         dc.SelectPen(oldpen);
 
         if (ectcMouseDownL_NewTabButton == (m_dwState & ectcMouseDown))

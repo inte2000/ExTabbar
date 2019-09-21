@@ -5,6 +5,62 @@
 #include "SystemFunctions.h"
 #include "ShellTabItem.h"
 
+TString GetTabItemText(const CIDLEx& cidl, const TString& path)
+{
+    TString text;
+
+    if (IsNamespacePath(path) || IsDiskRootPath(path))
+    {
+        return std::move(cidl.GetDisplayName());
+    }
+
+    std::size_t rSlash = path.rfind(_T('\\'));
+    if (rSlash == TString::npos)
+    {
+        return path;
+    }
+
+    std::size_t pos = path.find(_T(':'), 0);
+    if (pos > 0)
+    {
+        text = path.substr(0, pos);
+        text += _T("...");
+        text += path.substr(rSlash + 1);
+    }
+    else
+    {
+        text = path.substr(rSlash + 1);
+    }
+
+    return std::move(text);
+}
+
+TString GetTabItemTooltip(const CIDLEx& cidl, bool bSlowMethod)
+{
+    TString text;
+
+    CComPtr<IShellFolder> pSF;
+    LPCITEMIDLIST pidl = nullptr;
+    HRESULT hr = ::SHBindToParent(cidl, IID_IShellFolder, (void**)& pSF, &pidl);
+    if (hr == S_OK)
+    {
+        CComPtr<IQueryInfo> pQI;
+        LPCITEMIDLIST apidl = pidl;
+        UINT rgfReserved = 0;
+        hr = pSF->GetUIObjectOf(NULL, 1, &apidl, IID_IQueryInfo, &rgfReserved, (void**)& pQI);
+        if (hr == S_OK)
+        {
+            WCHAR* pBuf = nullptr;
+            hr = pQI->GetInfoTip(bSlowMethod ? QITIPF_USESLOWTIP : QITIPF_DEFAULT, &pBuf);
+            if (hr == S_OK)
+            {
+                text = pBuf;
+            }
+        }
+    }
+
+    return std::move(text);
+}
 
 CShellTabItem::CShellTabItem()
 {
@@ -12,89 +68,21 @@ CShellTabItem::CShellTabItem()
 
 void CShellTabItem::Release()
 {
-    m_hisBackward.clear();
-    m_hisForward.clear();
-    m_hisBranches.clear();
+    m_TravelLogs.clear();
     ReleaseStatus();
     //m_cIdl.Release();
 }
 
-void CShellTabItem::GetHistoryBack(std::vector<TString>& historys)
+bool CShellTabItem::NavigatedTo(const CIDListData& IdlData, const CIDLEx& cidl, const TString& url)
 {
-    for (auto it = m_hisBackward.begin(); it != m_hisBackward.end(); ++it)
-        historys.push_back((*it)->GetCurrent().GetPath());
-}
+    m_curIdlData = IdlData;
+    m_strUrl = url;
 
-void CShellTabItem::GetHistoryForward(std::vector<TString>& historys)
-{
-    for (auto it = m_hisForward.begin(); it != m_hisForward.end(); ++it)
-        historys.push_back((*it)->GetCurrent().GetPath());
-}
-
-bool CShellTabItem::GoBackward(std::shared_ptr<CNavigatedPoint>& np)
-{
-    if (m_hisBackward.size() > 1)
-    {
-        m_hisForward.push_front(m_hisBackward.front());
-        m_hisBackward.pop_front();
-        np = m_hisBackward.front();
-        m_CurNp = np;
-        //m_cIdl.Attach(np->GetCIdl(), false);
-        //m_strPath = np->GetPath();
-        return true;
-    }
-
-    np = m_CurNp;
-    return false;
-}
-
-bool CShellTabItem::GoForward(std::shared_ptr<CNavigatedPoint>& np)
-{
-    if (m_hisForward.size() > 1)
-    {
-        m_hisBackward.push_front(m_hisForward.front());
-        m_hisForward.pop_front();
-        np = m_hisBackward.front();
-        m_CurNp = np;
-        //m_cIdl.Attach(np->GetCIdl(), false);
-        //m_strPath = np->GetPath();
-        return true;
-    }
-
-    np = m_CurNp;
-    return false;
-}
-
-bool CShellTabItem::NavigatedTo(const CIDListData& IdlData, const CIDLEx& cidl, int hash, bool autoNav)
-{
-    m_CurNp = ::std::make_shared<CNavigatedPoint>(CNavigatedPoint(IdlData, cidl, hash, autoNav));
-    if (m_CurNp == nullptr)
-        return false;
-
-    if (autoNav && m_hisBackward.size() > 0 && m_hisBackward.front()->IsAutoVav()) 
-    {
-        m_hisBackward.pop_front();
-    }
-    m_hisBackward.push_front(m_CurNp);
-    
-    for (auto& x : m_hisForward)
-    {
-        if (std::find_if(m_hisBranches.begin(), m_hisBranches.end(),
-            [x](auto& l)->bool {return x->IsSameNPoint(*l); }) == m_hisBranches.end())
-        {
-            m_hisBranches.push_back(x);
-        }
-    }
-    m_hisForward.clear();
-    for (auto& x : m_hisBackward)
-    {
-        auto it = std::find_if(m_hisBranches.begin(), m_hisBranches.end(),
-            [x](auto& l)->bool {return x->IsSameNPoint(*l); });
-        if (it != m_hisBranches.end())
-        {
-            m_hisBranches.erase(it);
-        }
-    }
+    m_strTitle = GetTabItemText(cidl, IdlData.GetPath());
+    if (IsNamespacePath(IdlData.GetPath()))
+        m_strTooltip = GetTabItemTooltip(cidl, true);
+    else
+        m_strTooltip = IdlData.GetPath();
 
     return true;
 }
@@ -118,15 +106,28 @@ void CShellTabItem::ClearCurrentStatus()
     ReleaseStatus();
 }
 
+const std::vector<CNavigatedPoint>& CShellTabItem::GetTravelLogs(CNavigatedPoint& curItem) const
+{
+    curItem.strTitle = m_strTitle;
+    curItem.strUrl = m_strUrl;
+
+    return m_TravelLogs;
+}
+
+void CShellTabItem::SetTravelLogs(std::vector<CNavigatedPoint>& logs)
+{
+    m_TravelLogs.clear();
+
+    m_TravelLogs = std::move(logs);
+}
+
 CIDLEx CShellTabItem::GetCurrentCIdl() const
 {
     CIDLEx tmpIdl;
     
-    if (m_CurNp != nullptr)
-    {
-        auto idlData = m_CurNp->GetCurrent().GetIDLData();
-        tmpIdl.CreateByIdListData(std::get<0>(idlData), std::get<1>(idlData));
-    }
+    auto idlData = m_curIdlData.GetIDLData();
+    tmpIdl.CreateByIdListData(std::get<0>(idlData), std::get<1>(idlData));
+
     return std::move(tmpIdl);
 }
 

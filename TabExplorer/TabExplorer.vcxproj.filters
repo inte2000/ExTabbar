@@ -136,6 +136,15 @@
     <ClInclude Include="..\common\TravelLogMgmt.h">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\DragDropSource.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\DragDropTarget.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ui\ColorHelper.h">
+      <Filter>ui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TabExplorer.cpp">
@@ -227,6 +236,9 @@
     </ClCompile>
     <ClCompile Include="..\common\TravelLogMgmt.cpp">
       <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ui\ColorHelper.cpp">
+      <Filter>ui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
