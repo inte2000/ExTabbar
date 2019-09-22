@@ -145,6 +145,9 @@
     <ClInclude Include="..\ui\ColorHelper.h">
       <Filter>ui</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\DataObject.h">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TabExplorer.cpp">
@@ -239,6 +242,9 @@
     </ClCompile>
     <ClCompile Include="..\ui\ColorHelper.cpp">
       <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\DataObject.cpp">
+      <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -71,14 +71,9 @@ int HookLibMgmt::InitShellBrowserHook(IShellBrowser* psb)
 {
     int rtn = -1;
 
-    if (m_isShellBrowserHooked)
-        return 0;
-
     if (m_DllInitShellBrowserHook != nullptr)
     {
         rtn = m_DllInitShellBrowserHook(psb);
-        if(rtn == 0)
-            m_isShellBrowserHooked = true;
     }
 
     return rtn;
@@ -91,7 +86,6 @@ void HookLibMgmt::InitInternalData()
     m_DllDispose = nullptr;
     m_DllInitShellBrowserHook = nullptr;
     m_libInitlized = false;
-    m_isShellBrowserHooked = false;
 }
 
 static HookLibMgmt s_hookMng;

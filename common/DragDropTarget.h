@@ -7,40 +7,43 @@ class CDropTarget : public IDropTarget
 public:
     CDropTarget() 
     { 
-        m_hGropREgWnd = NULL; 
+        m_hTargetWnd = NULL;
         m_lRefCount = 1;
         m_bAllowDrop = false;
+        m_pDropTargetHelper = nullptr;
     }
 
     virtual ~CDropTarget() 
     { 
-        Deregister(); 
+        DeregisterDropTarget();
     }
 
-    bool Register(HWND hWnd)
+    bool RegisterDropTarget(HWND hWnd)
     {
+        //CoCreateInstance(CLSID_DragDropHelper, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&m_pDropTargetHelper));
+
         HRESULT hr = ::RegisterDragDrop(hWnd, this);
         if (hr == S_OK)
         {
-            m_hGropREgWnd = hWnd;
+            m_hTargetWnd = hWnd;
             return true;
         }
 
         return false;
     }
 
-    void Deregister()
+    void DeregisterDropTarget()
     {
-        if (m_hGropREgWnd != NULL)
+        if (m_hTargetWnd != NULL)
         {
-            ::RevokeDragDrop(m_hGropREgWnd);
-            m_hGropREgWnd = NULL;
+            ::RevokeDragDrop(m_hTargetWnd);
+            m_hTargetWnd = NULL;
         }
     }
 
 
     // IUnknown interface
-    HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject)
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** ppvObject)
     {
         if (iid == IID_IDropTarget || iid == IID_IUnknown)
         {
@@ -55,13 +58,13 @@ public:
         }
     }
 
-    ULONG   __stdcall AddRef(void)
+    ULONG STDMETHODCALLTYPE AddRef(void)
     {
         InterlockedIncrement(&m_lRefCount);
         return m_lRefCount;
     }
 
-    ULONG   __stdcall Release(void)
+    ULONG STDMETHODCALLTYPE Release(void)
     {
         ULONG ulRefCount = InterlockedDecrement(&m_lRefCount);
 
@@ -74,8 +77,9 @@ public:
     }
 
     //IDropTarget interface
-    HRESULT __stdcall DragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
+    HRESULT STDMETHODCALLTYPE DragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
     {
+        POINT ppt = { pt.x, pt.y };
         // does the dataobject contain data we want?
         m_bAllowDrop = QueryDataObject(pDataObj);
         if (m_bAllowDrop)
@@ -84,6 +88,7 @@ public:
             // get the dropeffect based on keyboard state
             *pdwEffect = DropEffect(grfKeyState, pt, *pdwEffect);
             pT->SetFocus();
+            //SetFocus(m_hWnd);
             //PositionCursor(GetWnd(), pt);
         }
         else
@@ -91,16 +96,29 @@ public:
             *pdwEffect = DROPEFFECT_NONE;
         }
 
+        if (m_pDropTargetHelper != nullptr)
+        {
+            m_pDropTargetHelper->DragEnter(m_hTargetWnd, pDataObj, &ppt, *pdwEffect);
+        }
+
+        ATLTRACE(_T("CDropTarget::DragEnter() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d"), 
+            m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
         return S_OK;
     }
 
-    HRESULT __stdcall DragLeave()
+    HRESULT STDMETHODCALLTYPE DragLeave()
     {
+        if (m_pDropTargetHelper != nullptr)
+        {
+            m_pDropTargetHelper->DragLeave();
+        }
+        ATLTRACE(_T("CDropTarget::DragLeave() m_hGropREgWnd=0x%x"), m_hTargetWnd);
         return S_OK;
     }
 
-    HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
+    HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
     {
+        POINT ppt = { pt.x, pt.y };
         if (m_bAllowDrop)
         {
             *pdwEffect = DropEffect(grfKeyState, pt, *pdwEffect);
@@ -110,17 +128,24 @@ public:
         {
             *pdwEffect = DROPEFFECT_NONE;
         }
-
+        if (m_pDropTargetHelper != nullptr)
+        {
+            m_pDropTargetHelper->DragOver(&ppt, *pdwEffect);
+        }
+        ATLTRACE(_T("CDropTarget::DragOver() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d"),
+            m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
         return S_OK;
     }
 
-    HRESULT __stdcall Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
+    HRESULT STDMETHODCALLTYPE Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
     {
+        POINT ppt = { pt.x, pt.y };
         //PositionCursor(GetWnd(), pt);
         if (m_bAllowDrop)
         {
             T* pT = static_cast<T*>(this);
             //pT->DropData(GetWnd(), pDataObj);
+            //pT->DropData(pDataObj);
             *pdwEffect = DropEffect(grfKeyState, pt, *pdwEffect);
         }
         else
@@ -128,6 +153,12 @@ public:
             *pdwEffect = DROPEFFECT_NONE;
         }
 
+        if (m_pDropTargetHelper != nullptr)
+        {
+            m_pDropTargetHelper->Drop(pDataObj, &ppt, *pdwEffect);
+        }
+        ATLTRACE(_T("CDropTarget::Drop() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d"),
+            m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
         return S_OK;
     }
 
@@ -171,10 +202,11 @@ protected:
     }
 
 protected:
-    HWND m_hGropREgWnd;
+    HWND m_hTargetWnd;
     LONG m_lRefCount;
     bool m_bAllowDrop;
     IDataObject* m_pDataObject;
+    IDropTargetHelper* m_pDropTargetHelper;
 };
 
 /*

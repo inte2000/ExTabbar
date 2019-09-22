@@ -4,11 +4,9 @@
 //#include "dllmain.h"
 #include "atlgdix.h"
 #include "DotNetTabCtrl.h"
-#include "DragDropTarget.h"
 
 //CDotNetTabCtrlImpl
-class CTeTabCtrl : public CDotNetTabCtrlImpl<CTeTabCtrl>,
-                   public CDropTarget<CTeTabCtrl>
+class CTeTabCtrl : public CDotNetTabCtrlImpl<CTeTabCtrl>
 {
 protected:
 	typedef CTeTabCtrl thisClass;

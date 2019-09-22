@@ -213,6 +213,9 @@
   #error CustomTabCtrl.h requires _WIN32_IE >= 0x0400
 #endif
 
+#include "DragDropTarget.h"
+#include "DragDropSource.h"
+
 // Window styles:
 // NOTE: "CTCS" stands for "Custom tab control style"
 #define CTCS_SCROLL              0x0001   // TCS_SCROLLOPPOSITE
@@ -698,7 +701,9 @@ typedef ATL::CWinTraits<WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLING
 template <class T, class TItem = CCustomTabItem, class TBase = ATL::CWindow, class TWinTraits = CCustomTabCtrlWinTraits>
 class ATL_NO_VTABLE CCustomTabCtrl : 
 	public ATL::CWindowImpl< T, TBase, TWinTraits >,
-	public COffscreenDrawRect< T >
+	public COffscreenDrawRect< T >,
+    public CDropTarget< T >,
+    public CDropSource< T >
 {
 public:
 	// Expose the item type (that's a template parameter to this base class)
@@ -1311,6 +1316,8 @@ public:
 
 		T* pT = static_cast<T*>(this);
 		pT->Initialize();
+
+        RegisterDropTarget(m_hWnd);
 		return lRes;
 	}
 
@@ -1318,6 +1325,7 @@ public:
 	{
 		T* pT = static_cast<T*>(this);
 		pT->Uninitialize();
+        DeregisterDropTarget();
 		bHandled = FALSE;
 		return 0;
 	}
@@ -1388,12 +1396,26 @@ public:
 			(ectcMouseDownL_TabItem == (m_dwState & ectcMouseDown)) &&
 			(m_ptDragOrigin.x != ptCursor.x))
 		{
-			pT->BeginItemDrag(m_iDragItem, m_ptDragOrigin);
-		}
+			//pT->BeginItemDrag(m_iDragItem, m_ptDragOrigin);
+            IDataObject* pDataObject = nullptr;
+            DWORD dwEffect = 0;
+            HRESULT rtn = pT->DoDragDropEx(pDataObject, DROPEFFECT_MOVE | DROPEFFECT_COPY, &dwEffect);
+            if (rtn == DRAGDROP_S_DROP)
+            {
+                if (dwEffect == DROPEFFECT_MOVE)
+                {
+                }
+                if (dwEffect == DROPEFFECT_COPY)
+                {
+                }
+            }
+        }
+/*
 		else if(ectcDraggingItem == (m_dwState & ectcDraggingItem))
 		{
 			pT->ContinueItemDrag(ptCursor);
 		}
+*/
 		else if(ectcMouseInWindow == (m_dwState & ectcMouseInWindow))
 		{
 			// hit test
@@ -1703,20 +1725,9 @@ public:
 				// returning FALSE let's us do our default handling
 				if(nIndex >= 0)
 				{
-					// NOTE: If they click on a tab, only grab the focus
-					//  if a drag operation is started.
-					//pT->SetFocus();
-					pT->SetCurSel(nIndex);
-
+					m_dwState |= ectcMouseDownL_TabItem;
 					m_iDragItem = nIndex;
 					m_ptDragOrigin = ptCursor;
-
-					m_dwState |= ectcMouseDownL_TabItem;
-
-					// This could be a drag operation.  We'll start the actual drag
-					// operation in OnMouseMove if the mouse moves while the left mouse
-					// button is still pressed.  OnLButtonUp will ReleaseCapture.
-					this->SetCapture();
 				}
 			}
 		}
@@ -1731,12 +1742,12 @@ public:
 			T* pT = static_cast<T*>(this);
 
 			POINT ptCursor = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-
+/*
 			if(ectcDraggingItem == (m_dwState & ectcDraggingItem))
 			{
 				pT->AcceptItemDrag();
 			}
-
+*/
 			// Before we release the capture, remember what the state was
 			// (in WM_CAPTURECHANGED we ClearCurrentMouseDownTracking)
 			DWORD dwState = m_dwState;

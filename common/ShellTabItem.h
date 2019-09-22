@@ -33,13 +33,13 @@ protected:
 protected:
     TString m_strUrl;
     TString m_strTitle;
-    TString m_strTooltip; //对于普通目录是full path，即m_strUrl，对于shell space name是displayname，即title
+    TString m_strTooltip; //for normal folder, it's full path, m_strUrl, for shell space name, it's displayname, m_strTitle
 
     CIDListData m_curIdlData;
 
-    //切换时保存选中的item和焦点item
+    //keep selected item and focus item while switch tab
     TString m_focusPath;
     std::vector<CIDListData*> m_SelectedItems;
-    //切换时保存浏览日志
+    //keep travel log while switch tab
     std::vector<CNavigatedPoint> m_TravelLogs;
 };

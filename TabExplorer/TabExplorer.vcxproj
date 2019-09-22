@@ -234,6 +234,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\DataObject.h" />
     <ClInclude Include="..\common\DebugLog.h" />
     <ClInclude Include="..\common\DragDropSource.h" />
     <ClInclude Include="..\common\DragDropTarget.h" />
@@ -276,6 +277,7 @@
     <ClInclude Include="WzToolbar.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\DataObject.cpp" />
     <ClCompile Include="..\common\DebugLog.cpp" />
     <ClCompile Include="..\common\GuidEx.cpp" />
     <ClCompile Include="..\common\HookLibMgmt.cpp" />

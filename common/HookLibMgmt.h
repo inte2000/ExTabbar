@@ -33,8 +33,6 @@ private:
     fpInitialize m_DllInitialize;
     fpDispose m_DllDispose;
     fpInitShellBrowserHook m_DllInitShellBrowserHook;
-
-    bool m_isShellBrowserHooked;
 };
 
 HookLibMgmt& GetHookMgmt();
