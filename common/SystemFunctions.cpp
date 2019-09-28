@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "framework.h"
 #include "shlobj.h"
+#include <strsafe.h>
 #include "SystemFunctions.h"
 
 HINSTANCE g_Instance = NULL;
@@ -417,7 +418,72 @@ TString TStringFromWStr(LPWSTR wstr)
     return std::move(strRtn);
 }
 
+WCHAR* WStrFromTString(WCHAR* wstrBuf, int bufChs, const TString& tstr)
+{
+#ifdef UNICODE
+    StringCchCopyW(wstrBuf, bufChs, tstr.c_str());
+#else
+    int _convert = ::MultiByteToWideChar(CP_ACP, 0, (LPCCH)tstr.c_str(), -1, wstrBuf, bufChs);
+    wstrBuf[_convert - 1] = 0;
+#endif
+    return wstrBuf;
+}
+
+HGLOBAL CopyGlobalMemoryHandle(HGLOBAL hDest, HGLOBAL hSource)
+{
+    if (hSource == NULL)
+        return NULL;
+
+    ULONG_PTR nSize = ::GlobalSize(hSource);
+    if (hDest == NULL)
+    {
+        hDest = ::GlobalAlloc(GMEM_SHARE | GMEM_MOVEABLE, nSize);
+        if (hDest == NULL)
+            return NULL;
+    }
+    else if (nSize > ::GlobalSize(hDest))
+    {
+        return NULL;
+    }
+
+    LPVOID lpSource = ::GlobalLock(hSource);
+    LPVOID lpDest = ::GlobalLock(hDest);
+    ::CopyMemory(lpDest, lpSource, nSize);
+    ::GlobalUnlock(hDest);
+    ::GlobalUnlock(hSource);
+
+    return hDest;
+}
 /*
+HBITMAP GetWindowSnapBitmap(HWND hWnd, SIZE* size)
+{
+    HDC hDC = ::GetDC(hWnd);
+    if (hDC == NULL)
+        return NULL;
+    
+    RECT rcWnd;
+    ::GetWindowRect(hWnd, &rcWnd);
+    HBITMAP hBitmap = ::CreateCompatibleBitmap(hDC, rcWnd.right - rcWnd.left, rcWnd.bottom - rcWnd.top);
+    if (hBitmap != NULL)
+    {
+        if (size != nullptr)
+        {
+            size->cx = rcWnd.right - rcWnd.left;
+            size->cy = rcWnd.bottom - rcWnd.top;
+        }
+        HDC memDC = ::CreateCompatibleDC(hDC);
+        if (memDC != NULL)
+        {
+            HBITMAP hOldBmp = (HBITMAP)::SelectObject(memDC, hBitmap);
+            ::SendMessage(hWnd, WM_PRINT, (WPARAM)memDC, (LPARAM)PRF_ERASEBKGND | PRF_NONCLIENT | PRF_CHILDREN | PRF_CLIENT);
+            ::SelectObject(memDC, hOldBmp);
+            ::DeleteDC(memDC);
+        }
+    }
+    ::ReleaseDC(hWnd, hDC);
+
+    return hBitmap;
+}
 template<class T>
 void ClearStack(std::stack<T>& stk)
 {

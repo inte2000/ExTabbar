@@ -22,11 +22,13 @@ public:
     HRESULT OnBeforeNavigate(const TString& strUrl);
     void OnNavigateComplete(const TString& strUrl);
     HWND GetHwnd() const { return m_hExplorerWnd; }
+    void Show(BOOL bShow) { ATLASSERT(m_hExplorerWnd != NULL); ::ShowWindow(m_hExplorerWnd, bShow ? SW_SHOW : SW_HIDE); }
     void UpdateTabSizeAndPosition(RECT &StwRect);
     int GetTabbarHeight() const { return m_iTabbarHeight; }
     bool SetTravelBandLogEntries(const std::vector<CNavigatedPoint>& logs, const CNavigatedPoint& curItem, bool bTravelToCurrent);
     void GetTravelBandLogEntries(std::vector<CNavigatedPoint>& logs, int maxWanted, CNavigatedPoint& curItem) const;
-
+    const CShellTabWindow& GetShellTabWindow() const { ATLASSERT(m_hExplorerWnd != NULL); return m_ShellTabWnd; }
+    CShellTabWindow& GetShellTabWindow() { ATLASSERT(m_hExplorerWnd != NULL); return m_ShellTabWnd; }
 protected:
     BOOL SubclassStatusBar();
     BOOL SubclassLeftTree(HWND hTreeView);

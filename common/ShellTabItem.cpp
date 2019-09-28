@@ -23,8 +23,9 @@ TString GetTabItemText(const CIDLEx& cidl, const TString& path)
     std::size_t pos = path.find(_T(':'), 0);
     if (pos > 0)
     {
-        text = path.substr(0, pos);
-        text += _T("...");
+        text = _T("[");
+        text += path.substr(0, pos);
+        text += _T("]...");
         text += path.substr(rSlash + 1);
     }
     else

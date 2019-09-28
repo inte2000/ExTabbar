@@ -234,10 +234,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\DataBuffer.h" />
     <ClInclude Include="..\common\DataObject.h" />
     <ClInclude Include="..\common\DebugLog.h" />
     <ClInclude Include="..\common\DragDropSource.h" />
     <ClInclude Include="..\common\DragDropTarget.h" />
+    <ClInclude Include="..\common\EnumFormatEtc.h" />
     <ClInclude Include="..\common\GuidEx.h" />
     <ClInclude Include="..\common\HookLibMgmt.h" />
     <ClInclude Include="..\common\IDListData.h" />
@@ -259,6 +261,7 @@
     <ClInclude Include="..\ui\MemDC.h" />
     <ClInclude Include="AddressBar.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="DragDropData.h" />
     <ClInclude Include="ExplorerWindow.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="LeftTreeView.h" />
@@ -277,8 +280,11 @@
     <ClInclude Include="WzToolbar.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\DataBuffer.cpp" />
     <ClCompile Include="..\common\DataObject.cpp" />
     <ClCompile Include="..\common\DebugLog.cpp" />
+    <ClCompile Include="..\common\DragDropSource.cpp" />
+    <ClCompile Include="..\common\EnumFormatEtc.cpp" />
     <ClCompile Include="..\common\GuidEx.cpp" />
     <ClCompile Include="..\common\HookLibMgmt.cpp" />
     <ClCompile Include="..\common\IDListData.cpp" />
@@ -309,6 +315,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="DragDropData.cpp" />
     <ClCompile Include="ExplorerWindow.cpp" />
     <ClCompile Include="LeftTreeView.cpp" />
     <ClCompile Include="pch.cpp">

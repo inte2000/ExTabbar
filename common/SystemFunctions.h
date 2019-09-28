@@ -33,3 +33,8 @@ HWND FindChildWndEx(HWND hwnd, LPCTSTR className, LPCTSTR caption = nullptr);
 HIMAGELIST GetSystemImageList(BOOL bLargeIcon);
 int GetShellObjectIcon(LPCITEMIDLIST pidl);
 TString TStringFromWStr(LPWSTR wstr);
+WCHAR* WStrFromTString(WCHAR* wstrBuf, int bufChs, const TString& tstr);
+
+HGLOBAL CopyGlobalMemoryHandle(HGLOBAL hDest, HGLOBAL hSource);
+
+HBITMAP GetWindowSnapBitmap(HWND hWnd, SIZE* size = nullptr);

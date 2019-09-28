@@ -4,6 +4,11 @@
 //#include "dllmain.h"
 #include "atlgdix.h"
 #include "DotNetTabCtrl.h"
+#include "DragDropTarget.h"
+#include "DragDropSource.h"
+
+class CExplorerWindow;
+class CShellBrowserEx;
 
 //CDotNetTabCtrlImpl
 class CTeTabCtrl : public CDotNetTabCtrlImpl<CTeTabCtrl>
@@ -16,9 +21,18 @@ protected:
 public:
 	CTeTabCtrl()
 	{
-	}
+        m_pShellBrowser = nullptr;
+        m_pExplorerWnd = nullptr;
+    }
 
 	DECLARE_WND_CLASS_EX(_T("WTL_TeTabCtrl"), CS_DBLCLKS, COLOR_WINDOW)
+
+    void SetShellObject(CExplorerWindow* pExplorerWnd, CShellBrowserEx* pShellBrowser)
+    {
+        m_pShellBrowser = pShellBrowser;
+        m_pExplorerWnd = pExplorerWnd;
+    }
+
 protected:
     
     BEGIN_MSG_MAP(CTeTabCtrl)
@@ -26,13 +40,18 @@ protected:
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
         //REFLECTED_NOTIFY_CODE_HANDLER(CTCN_SELCHANGE, OnSelChange)
         CHAIN_MSG_MAP(CDotNetTabCtrlImpl<CTeTabCtrl>)
+        REFLECTED_NOTIFY_CODE_HANDLER(CTCN_CLOSE, OnCloseButton)
         DEFAULT_REFLECTION_HANDLER()
     END_MSG_MAP()
     
     LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
     LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-    LRESULT OnSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+    //LRESULT OnSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+    LRESULT OnCloseButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
 protected:
     CImageList m_sysImgList;
+    CShellBrowserEx* m_pShellBrowser;
+    //for parent explorer window
+    CExplorerWindow* m_pExplorerWnd;
 };

@@ -10,6 +10,9 @@
 #include "ExplorerWindow.h" //
 #include "TabbarWindow.h"
 #include "ShellTabItem.h"
+#include "DataObject.h"
+#include "DragDropSource.h"
+#include "DragDropData.h"
 
 
 BOOL g_bUsingLargeButton = FALSE;
@@ -585,6 +588,10 @@ LRESULT CTabbarWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
         return -1;
     }
 
+    ATLASSERT(m_pExplorerWnd != nullptr);
+    ATLASSERT(m_ShellBrowser.IsValid());
+    m_TabCtrl.SetShellObject(m_pExplorerWnd, &m_ShellBrowser);
+
     return 0;
 }
 
@@ -908,37 +915,6 @@ LRESULT CTabbarWindow::OnTabctrlNewTabButton(int idCtrl, LPNMHDR pnmh, BOOL& bHa
     return 0;
 }
 
-LRESULT CTabbarWindow::OnTabctrlCloseButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
-{
-    ATLASSERT(m_pExplorerWnd != nullptr);
-
-    NMCTCITEM* pNtItem = reinterpret_cast<NMCTCITEM*>(pnmh);
-
-    if (pNtItem->iItem >= 0)
-    {
-        int nItemCount = m_TabCtrl.GetItemCount();
-        if (nItemCount == 1) //last tab£¬should give an alert to close explorer window?
-        {
-        }
-        else
-        {
-            int nCurSel = m_TabCtrl.GetCurSel();
-            if (nCurSel == pNtItem->iItem)
-            {
-                if (pNtItem->iItem == (nItemCount - 1))
-                    m_TabCtrl.SetCurSel(pNtItem->iItem - 1);
-                else
-                    m_TabCtrl.SetCurSel(pNtItem->iItem + 1);
-            }
-        }
-        m_TabCtrl.DeleteItem(pNtItem->iItem);
-        if (m_TabCtrl.GetItemCount() <= 0)
-            m_pExplorerWnd->CloseExplorerWindow();
-    }
-
-    return 0;
-}
-
 LRESULT CTabbarWindow::OnTabctrlSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {
     NMCTC2ITEMS* pNmItem = reinterpret_cast<NMCTC2ITEMS *>(pnmh);
@@ -948,13 +924,10 @@ LRESULT CTabbarWindow::OnTabctrlSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandl
         CShellTabItem* psti = (CShellTabItem*)m_TabCtrl.GetItemData(pNmItem->iItem1);
         ATLASSERT(psti != nullptr);
         std::vector<CIDListData*> selectedItems;
-        HRESULT hr = m_ShellBrowser.GetSelectedItems(selectedItems, false);
-        if (hr == S_OK)
-        {
-            CIDLEx focusItem = m_ShellBrowser.GetFocusedItem();
-            TString focusPath = focusItem.GetParseName();
-            psti->SetCurrentStatus(focusPath, selectedItems);
-        }
+        m_ShellBrowser.GetSelectedItems(selectedItems, false);
+        CIDLEx focusItem = m_ShellBrowser.GetFocusedItem();
+        TString focusPath = focusItem.GetParseName();
+        psti->SetCurrentStatus(focusPath, selectedItems);
 
         std::vector<CNavigatedPoint> logs;
         CNavigatedPoint curItem;

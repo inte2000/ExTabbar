@@ -213,9 +213,6 @@
   #error CustomTabCtrl.h requires _WIN32_IE >= 0x0400
 #endif
 
-#include "DragDropTarget.h"
-#include "DragDropSource.h"
-
 // Window styles:
 // NOTE: "CTCS" stands for "Custom tab control style"
 #define CTCS_SCROLL              0x0001   // TCS_SCROLLOPPOSITE
@@ -283,8 +280,10 @@
 #define CTFI_TOOLTIP             0x0008
 #define CTFI_TABVIEW             0x0010
 #define CTFI_HIGHLIGHTED         0x0020
-#define CTFI_CANCLOSE            0x0040
-#define CTFI_LAST                CTFI_CANCLOSE
+#define CTFI_DRAGDROPED          0x0040
+#define CTFI_CANCLOSE            0x0080
+#define CTFI_USERDATA            0x0100
+#define CTFI_LAST                CTFI_USERDATA
 #define CTFI_ALL                 0xFFFF
 
 // Number of milliseconds for scroll repeat
@@ -305,6 +304,9 @@
 #ifndef CTCD_SCROLLZONEWIDTH
 	#define CTCD_SCROLLZONEWIDTH 20
 #endif
+
+//define some special attr for drag drop
+#define   CDIS_DRAGDROPED         0x01000000
 
 // Structures
 typedef struct tagNMCTCITEM
@@ -366,6 +368,7 @@ protected:
 	_CSTRING_NS::CString m_sText;
 	_CSTRING_NS::CString m_sToolTip;
 	bool m_bHighlighted;
+    bool m_bDragdroped;
 	bool m_bCanClose;
 	unsigned long long m_ullProgressCompleted;
 	unsigned long long m_ullProgressTotal;
@@ -397,6 +400,7 @@ public:
 	CCustomTabItem() :
 		m_nImage(-1),
 		m_bHighlighted(false),
+        m_bDragdroped(false),
 		m_bCanClose(true),
 		m_ullProgressCompleted(0ULL),
 		m_ullProgressTotal(0ULL),
@@ -423,6 +427,7 @@ public:
 			m_sText         = rhs.m_sText;
 			m_sToolTip      = rhs.m_sToolTip;
 			m_bHighlighted  = rhs.m_bHighlighted;
+            m_bDragdroped   = rhs.m_bDragdroped;
 			m_bCanClose     = rhs.m_bCanClose;
 			m_ullProgressCompleted = rhs.m_ullProgressCompleted;
 			m_ullProgressTotal = rhs.m_ullProgressTotal;
@@ -543,6 +548,15 @@ public:
 		return true;
 	}
 
+	bool IsDragdroped() const
+	{
+		return m_bDragdroped;
+	}
+	void SetDragdroped(bool bDragdroped)
+	{
+        m_bDragdroped = bDragdroped;
+	}
+
 	bool CanClose() const
 	{
 		return m_bCanClose;
@@ -597,9 +611,17 @@ public:
 		{
 			bMatch = (m_bHighlighted == pItem->m_bHighlighted);
 		}
+		if(bMatch && (eFlags & CTFI_DRAGDROPED) == CTFI_DRAGDROPED)
+		{
+			bMatch = (m_bDragdroped == pItem->m_bDragdroped);
+		}
 		if(bMatch && (eFlags & CTFI_CANCLOSE) == CTFI_CANCLOSE)
 		{
 			bMatch = (m_bCanClose == pItem->m_bCanClose);
+		}
+		if(bMatch && (eFlags & CTFI_USERDATA) == CTFI_USERDATA)
+		{
+			bMatch = (m_ulData == pItem->m_ulData);
 		}
 
 		if(bMatch)
@@ -701,9 +723,7 @@ typedef ATL::CWinTraits<WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLING
 template <class T, class TItem = CCustomTabItem, class TBase = ATL::CWindow, class TWinTraits = CCustomTabCtrlWinTraits>
 class ATL_NO_VTABLE CCustomTabCtrl : 
 	public ATL::CWindowImpl< T, TBase, TWinTraits >,
-	public COffscreenDrawRect< T >,
-    public CDropTarget< T >,
-    public CDropSource< T >
+	public COffscreenDrawRect< T >
 {
 public:
 	// Expose the item type (that's a template parameter to this base class)
@@ -855,7 +875,7 @@ public:
 		m_hCursorMove(NULL),
 		m_hCursorNoDrop(NULL),
 		m_iScrollOffset(0),
-        m_iFixedWidth(120)
+        m_iFixedWidth(180)
 	{
 		::ZeroMemory(&m_settings, sizeof(CTCSETTINGS));
 		::ZeroMemory(&m_ptDragOrigin, sizeof(POINT));
@@ -1159,14 +1179,16 @@ public:
 		if(index >= 0)
 		{
 			DWORD dwStyle = this->GetStyle();
+            this->SetItemDragDrop(index, true);
 			NMCTCITEM nmh = {{ m_hWnd, (UINT_PTR)this->GetDlgCtrlID(), CTCN_BEGINITEMDRAG }, index, {ptDragOrigin.x, ptDragOrigin.y}, 0};
-			if(FALSE != ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM)&nmh))
+			if(0 != ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM)&nmh))
 			{
 				// Returning non-zero prevents our default handling.
 				// We've possibly already set a couple things that we
 				// need to cleanup, so call StopItemDrag
 				pT->StopItemDrag(false);
-			}
+                //this->SetItemDragDrop(m_iDragItem, false);
+            }
 			else
 			{
 				// returning FALSE let's us do our default handling
@@ -1316,8 +1338,6 @@ public:
 
 		T* pT = static_cast<T*>(this);
 		pT->Initialize();
-
-        RegisterDropTarget(m_hWnd);
 		return lRes;
 	}
 
@@ -1325,7 +1345,6 @@ public:
 	{
 		T* pT = static_cast<T*>(this);
 		pT->Uninitialize();
-        DeregisterDropTarget();
 		bHandled = FALSE;
 		return 0;
 	}
@@ -1373,7 +1392,8 @@ public:
 		DWORD dwBefore = m_dwState & ectcHotTrack;
 
 		T* pT = static_cast<T*>(this);
-		if(ectcMouseInWindow != (m_dwState & ectcMouseInWindow))		{
+		if(ectcMouseInWindow != (m_dwState & ectcMouseInWindow))
+		{
 			TRACKMOUSEEVENT tme = { 0 };
 			tme.cbSize = sizeof(tme);
 			tme.dwFlags = TME_LEAVE;
@@ -1396,26 +1416,12 @@ public:
 			(ectcMouseDownL_TabItem == (m_dwState & ectcMouseDown)) &&
 			(m_ptDragOrigin.x != ptCursor.x))
 		{
-			//pT->BeginItemDrag(m_iDragItem, m_ptDragOrigin);
-            IDataObject* pDataObject = nullptr;
-            DWORD dwEffect = 0;
-            HRESULT rtn = pT->DoDragDropEx(pDataObject, DROPEFFECT_MOVE | DROPEFFECT_COPY, &dwEffect);
-            if (rtn == DRAGDROP_S_DROP)
-            {
-                if (dwEffect == DROPEFFECT_MOVE)
-                {
-                }
-                if (dwEffect == DROPEFFECT_COPY)
-                {
-                }
-            }
-        }
-/*
+			pT->BeginItemDrag(m_iDragItem, m_ptDragOrigin);
+		}
 		else if(ectcDraggingItem == (m_dwState & ectcDraggingItem))
 		{
 			pT->ContinueItemDrag(ptCursor);
 		}
-*/
 		else if(ectcMouseInWindow == (m_dwState & ectcMouseInWindow))
 		{
 			// hit test
@@ -1579,7 +1585,6 @@ public:
 						m_iHotItem = nIndex;
 
 						m_dwState |= ectcHotTrack_TabItem;
-                        //this->HighlightItem(nIndex, true);
 						RECT rcItem = {0};
 						this->GetItemRect(nIndex, &rcItem);
 						this->InvalidateRect(&rcItem);
@@ -1725,9 +1730,20 @@ public:
 				// returning FALSE let's us do our default handling
 				if(nIndex >= 0)
 				{
-					m_dwState |= ectcMouseDownL_TabItem;
+					// NOTE: If they click on a tab, only grab the focus
+					//  if a drag operation is started.
+					//pT->SetFocus();
+					pT->SetCurSel(nIndex);
+
 					m_iDragItem = nIndex;
 					m_ptDragOrigin = ptCursor;
+
+					m_dwState |= ectcMouseDownL_TabItem;
+
+					// This could be a drag operation.  We'll start the actual drag
+					// operation in OnMouseMove if the mouse moves while the left mouse
+					// button is still pressed.  OnLButtonUp will ReleaseCapture.
+					this->SetCapture();
 				}
 			}
 		}
@@ -1742,12 +1758,13 @@ public:
 			T* pT = static_cast<T*>(this);
 
 			POINT ptCursor = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-/*
+
 			if(ectcDraggingItem == (m_dwState & ectcDraggingItem))
 			{
 				pT->AcceptItemDrag();
-			}
-*/
+                //this->SetItemDragDrop(m_iDragItem, false);
+            }
+
 			// Before we release the capture, remember what the state was
 			// (in WM_CAPTURECHANGED we ClearCurrentMouseDownTracking)
 			DWORD dwState = m_dwState;
@@ -2634,6 +2651,11 @@ public:
 							{
 								pnmcd->uItemState |= CDIS_MARKED;
 							}
+                            if(pItem->IsDragdroped())
+                            {
+                                pnmcd->uItemState |= CDIS_DRAGDROPED;
+                            }
+                            
 							pnmcd->rc = rcItemLP;
 							pT->ProcessItem(lResCustom, &nmc);
 						}
@@ -2664,6 +2686,10 @@ public:
 						{
 							pnmcd->uItemState |= CDIS_MARKED;
 						}
+                        if (pItem->IsDragdroped())
+                        {
+                            pnmcd->uItemState |= CDIS_DRAGDROPED;
+                        }
 						pnmcd->rc = rcItemLP;
 						pT->ProcessItem(lResCustom, &nmc);
 					}
@@ -2775,6 +2801,74 @@ public:
 		// (if you want to support these)
 	}
 
+    HBITMAP GetItemDragImage(int nItem, POINT *ptOffset, SIZE *size = nullptr)
+    {
+        if ((nItem < 0) || (nItem >= m_Items.GetCount()))
+            return NULL;
+
+        TItem* pItem = m_Items[nItem];
+        ATLASSERT(pItem != NULL);
+        RECT rcItemLP = { 0 }, rcItemDP = { 0 };
+        rcItemLP = pItem->GetRect();
+
+        rcItemDP.left = 0;
+        rcItemDP.top = 0;
+        rcItemDP.right = rcItemDP.left + (rcItemLP.right - rcItemLP.left);
+        rcItemDP.bottom = rcItemDP.top + (rcItemLP.bottom - rcItemLP.top);
+        ::OffsetRect(&rcItemDP, m_iScrollOffset, 0);
+
+        HDC dc = ::GetDC(NULL);
+        HBITMAP bitmap = ::CreateCompatibleBitmap(dc, (rcItemDP.right - rcItemDP.left), (rcItemDP.bottom - rcItemDP.top));
+        ::ReleaseDC(NULL, dc);
+
+        HDC memDC = ::CreateCompatibleDC(NULL);
+        HGDIOBJ oldBitmap = ::SelectObject(memDC, bitmap);
+
+        T* pT = static_cast<T*>(this);
+        NMCTCCUSTOMDRAW nmc = { 0 };
+        pT->InitializeDrawStruct(&nmc);
+
+        LPNMCUSTOMDRAW pnmcd = &(nmc.nmcd);
+        pnmcd->hdr.hwndFrom = m_hWnd;
+        pnmcd->hdr.idFrom = this->GetDlgCtrlID();
+        pnmcd->hdr.code = NM_CUSTOMDRAW;
+        pnmcd->hdc = memDC;
+        pnmcd->uItemState = 0;
+
+        pnmcd->dwItemSpec = nItem;
+        if(nItem == m_iCurSel)
+            pnmcd->uItemState = CDIS_SELECTED;
+        else
+            pnmcd->uItemState = 0;
+            
+        if (nItem == m_iHotItem)
+        {
+            pnmcd->uItemState |= CDIS_HOT;
+        }
+        if (pItem->IsHighlighted())
+        {
+            pnmcd->uItemState |= CDIS_MARKED;
+        }
+
+        pnmcd->rc = rcItemDP;
+        pT->DoItemPaint(&nmc);
+
+        ::SelectObject(memDC, oldBitmap);
+        ::DeleteDC(memDC);
+
+        if (size != nullptr)
+        {
+            size->cx = rcItemDP.right - rcItemDP.left;
+            size->cy = rcItemDP.bottom - rcItemDP.top;
+        }
+        if (ptOffset != nullptr)
+        {
+            ptOffset->x -= rcItemLP.left;
+        }
+
+        return bitmap;
+    }
+
 // Operations
 public:
 
@@ -2819,6 +2913,14 @@ public:
 	//	ATLASSERT(::IsWindow(m_hWnd));
 	//	::SendMessage(m_hWnd, TCM_SETTOOLTIPS, (WPARAM)hWndToolTip, 0L);
 	//}
+
+    void SetItemDragDrop(int nItem, bool bDragdroped)
+    {
+        TItem* pItem = m_Items[nItem];
+        ATLASSERT(pItem != NULL);
+
+        pItem->SetDragdroped(bDragdroped);
+    }
 
 	bool SetScrollDelta(UINT nDelta)
 	{
@@ -2974,26 +3076,43 @@ public:
 		TItem* pToItem = m_Items[nToIndex];
 		ATLASSERT(pFromItem != NULL);
 		ATLASSERT(pToItem != NULL);
-		m_Items[nFromIndex] = pToItem;
-		m_Items[nToIndex] = pFromItem;
+        //RECT fromRc = pFromItem->GetRect();
+        //RECT toRc = pToItem->GetRect();
 
+        if (nFromIndex == (size_t)m_iDragItem)
+        {
+            m_iDragItem = (int)nToIndex;
+        }
+        else if (nToIndex == (size_t)m_iDragItem)
+        {
+            m_iDragItem = (int)nFromIndex;
+        }
+        m_Items[nFromIndex] = pToItem;
+        m_Items[nToIndex] = pFromItem;
+        //m_Items[nFromIndex]->SetRect(fromRc);
+        //m_Items[nToIndex]->SetRect(toRc);
+
+        UpdateLayout();
 		// The number of items is staying the same, so m_iCurSel
 		// won't be invalid whether it gets updated or not
-		if(bUpdateSelection)
+		if(nFromIndex == (size_t)m_iCurSel)
 		{
-			if(nFromIndex == (size_t)m_iCurSel)
-			{
-				pT->SetCurSel((int)nToIndex);
-			}
-			else if(nToIndex == (size_t)m_iCurSel)
-			{
-				pT->SetCurSel((int)nFromIndex);
-			}
+            if (bUpdateSelection)
+                pT->SetCurSel((int)nToIndex);
+            else
+                m_iCurSel = (int)nToIndex;
 		}
+		else if(nToIndex == (size_t)m_iCurSel)
+		{
+            if(bUpdateSelection)
+				pT->SetCurSel((int)nFromIndex);
+            else
+                m_iCurSel = (int)nFromIndex;
+        }
 
 		if(bNotify)
 		{
-			NMCTC2ITEMS nmh = {{ m_hWnd, this->GetDlgCtrlID(), CTCN_SWAPITEMPOSITIONS }, (int)nFromIndex, (int)nToIndex, {-1,-1}};
+			NMCTC2ITEMS nmh = {{ m_hWnd, (UINT_PTR)this->GetDlgCtrlID(), CTCN_SWAPITEMPOSITIONS }, (int)nFromIndex, (int)nToIndex, {-1,-1}};
 			::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM)&nmh);
 		}
 
@@ -3295,6 +3414,30 @@ public:
 	{
 		return (int)m_Items.GetCount();
 	}
+
+    int HitTestForDrag(const POINT* pt, RECT* rcItem) const
+    {
+        ATLASSERT(!::IsBadWritePtr(rcItem, sizeof(RECT)));
+
+        if (::PtInRect(&m_rcTabItemArea, *pt))
+        {
+            RECT rcItemDP = { 0 };
+            size_t nCount = m_Items.GetCount();
+            for (size_t i = 0; i < nCount; ++i)
+            {
+                // NOTE: GetItemRect accounts for any scroll
+                this->GetItemRect(i, &rcItemDP);
+
+                if (::PtInRect(&rcItemDP, *pt))
+                {
+                    *rcItem = rcItemDP;
+                    return (int)i;
+                }
+            }
+        }
+
+        return -1;
+    }
 
 	int HitTest(LPCTCHITTESTINFO pHitTestInfo) const
 	{

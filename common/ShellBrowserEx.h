@@ -15,6 +15,7 @@ public:
         m_spShellBrowser = NULL;
     }
 
+    bool IsValid() { return (m_spShellBrowser != nullptr); }
     void SetIShellBrowser(CComPtr<IShellBrowser>& spShellBrowser);
     CComPtr<IShellBrowser> GetIShellBrowser() { return m_spShellBrowser; }
     void SetUsingListView(bool listview);

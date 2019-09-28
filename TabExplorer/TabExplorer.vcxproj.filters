@@ -148,6 +148,15 @@
     <ClInclude Include="..\common\DataObject.h">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\EnumFormatEtc.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\DataBuffer.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="DragDropData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TabExplorer.cpp">
@@ -245,6 +254,18 @@
     </ClCompile>
     <ClCompile Include="..\common\DataObject.cpp">
       <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\EnumFormatEtc.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\DataBuffer.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\DragDropSource.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="DragDropData.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

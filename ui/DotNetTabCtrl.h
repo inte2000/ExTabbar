@@ -427,6 +427,7 @@ public:
 		// Tab is selected, so paint tab folder
 		bool bHighlighted = (CDIS_MARKED == (lpNMCustomDraw->nmcd.uItemState & CDIS_MARKED));
         bool bHot = (CDIS_HOT == (lpNMCustomDraw->nmcd.uItemState & CDIS_HOT));
+        bool bDragdroped = (CDIS_DRAGDROPED == (lpNMCustomDraw->nmcd.uItemState & CDIS_DRAGDROPED));
 
 		WTL::CDCHandle dc(lpNMCustomDraw->nmcd.hdc);
 
@@ -436,6 +437,15 @@ public:
         penText.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnText);
         penHilight.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnHighlight);
         COLORREF bgColor = bHot ? LightColor(lpNMCustomDraw->clrSelectedTab, 0.3) : lpNMCustomDraw->clrSelectedTab;
+
+        if (bDragdroped)
+        {
+            CRect rcBody = rcTab;
+            rcBody.DeflateRect(2, 2, 2, 2);
+            dc.FillSolidRect(&rcTab, bgColor);
+            dc.Draw3dRect(&rcBody, RGB(10, 132, 255), RGB(10, 132, 255));
+            return;
+        }
 
         if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
         {
@@ -492,43 +502,56 @@ public:
 		// Tab is not selected
 		bool bHighlighted = (CDIS_MARKED == (lpNMCustomDraw->nmcd.uItemState & CDIS_MARKED));
         bool bHot = (CDIS_HOT == (lpNMCustomDraw->nmcd.uItemState & CDIS_HOT));
+        bool bDragdroped = (CDIS_DRAGDROPED == (lpNMCustomDraw->nmcd.uItemState & CDIS_DRAGDROPED));
 
 		int nItem = (int)lpNMCustomDraw->nmcd.dwItemSpec;
 		WTL::CDCHandle dc( lpNMCustomDraw->nmcd.hdc );
 
         RECT rcBody = rcTab;
 
-        //COLORREF bgColor = bHot ? (lpNMCustomDraw->clrSelectedTab) : lpNMCustomDraw->clrSelectedTab;
+        COLORREF bgColor = bHot ? LightColor(lpNMCustomDraw->clrBtnFace, 0.3) : lpNMCustomDraw->clrBtnFace;
 
-		if(bHot)
+        if (bDragdroped)
+        {
+            CRect rcBody = rcTab;
+            rcBody.DeflateRect(2, 2, 2, 2);
+            dc.FillSolidRect(&rcTab, bgColor);
+            dc.Draw3dRect(&rcBody, RGB(10, 132, 255), RGB(10, 132, 255));
+            return;
+        }
+
+        if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+        {
+            //RECT rcHighlight = { rcTab.left + 1, rcTab.top + 1, rcTab.right - 2, rcTab.bottom - 1 };
+            RECT rcHighlight = rcTab;
+            if (nItem - 1 == m_iCurSel) rcHighlight.left += 1;  // Item to the right of the selected tab
+            dc.FillSolidRect(&rcHighlight, bgColor);
+        }
+		else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 		{
-            if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
+            //RECT rcHighlight = {rcTab.left+1, rcTab.top+3, rcTab.right-2, rcTab.bottom-1};
+			if(nItem - 1 == m_iCurSel) rcBody.left += 1;  // Item to the right of the selected tab
+            if (bHot)
             {
-                //RECT rcHighlight = { rcTab.left + 1, rcTab.top + 1, rcTab.right - 2, rcTab.bottom - 1 };
-                RECT rcHighlight = rcTab;
-                if (nItem - 1 == m_iCurSel) rcHighlight.left += 1;  // Item to the right of the selected tab
-                dc.FillSolidRect(&rcHighlight, LightColor(lpNMCustomDraw->clrBtnFace, 0.3));
-            }
-			else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
-			{
-                //RECT rcHighlight = {rcTab.left+1, rcTab.top+3, rcTab.right-2, rcTab.bottom-1};
-				if(nItem - 1 == m_iCurSel) rcBody.left += 1;  // Item to the right of the selected tab
                 RECT rcSign = rcBody;
                 rcBody.bottom -= 2;
                 rcSign.top = rcBody.bottom;
                 dc.FillSolidRect(&rcSign, RGB(192, 192, 192));
-				dc.FillSolidRect(&rcBody, LightColor(lpNMCustomDraw->clrBtnFace, 0.3));
-			}
-			else
-			{
-				//RECT rcHighlight = {rcTab.left+1, rcTab.top+2, rcTab.right-2, rcTab.bottom-2};
-				if(nItem - 1 == m_iCurSel) rcBody.left += 1;  // Item to the right of the selected tab
+            }
+			dc.FillSolidRect(&rcBody, bgColor);
+		}
+		else
+		{
+			//RECT rcHighlight = {rcTab.left+1, rcTab.top+2, rcTab.right-2, rcTab.bottom-2};
+			if(nItem - 1 == m_iCurSel) rcBody.left += 1;  // Item to the right of the selected tab
+            if (bHot)
+            {
                 RECT rcSign = rcBody;
                 rcBody.top += 2;
                 rcSign.bottom = rcBody.top;
                 dc.FillSolidRect(&rcSign, RGB(192, 192, 192));
-                dc.FillSolidRect(&rcBody, LightColor(lpNMCustomDraw->clrBtnFace, 0.3));
-			}
+            }
+            dc.FillSolidRect(&rcBody, bgColor);
 		}
 
 		// Draw division line on right, unless we're the item
@@ -571,7 +594,7 @@ public:
 		bool bHot = (CDIS_HOT == (lpNMCustomDraw->nmcd.uItemState & CDIS_HOT));
 		int nItem = (int)lpNMCustomDraw->nmcd.dwItemSpec;
 
-        ATLTRACE(_T("DrawImageText(item=%d, highlight=%d, selected=%d, hot=%d)\n"), nItem, bHighlighted, bSelected, bHot);
+        //ATLTRACE(_T("DrawImageText(item=%d, highlight=%d, selected=%d, hot=%d)\n"), nItem, bHighlighted, bSelected, bHot);
 		TItem* pItem = this->GetItem(nItem);
 
 		HFONT hOldFont = NULL;
@@ -902,7 +925,8 @@ public:
 		T* pT = static_cast<T*>(this);
 
 		bool bSelected = (CDIS_SELECTED == (lpNMCustomDraw->nmcd.uItemState & CDIS_SELECTED));
-		// NOTE: lpNMCustomDraw->nmcd.rc is in logical coordinates
+        bool bDragdroped = (CDIS_DRAGDROPED == (lpNMCustomDraw->nmcd.uItemState & CDIS_DRAGDROPED));
+        // NOTE: lpNMCustomDraw->nmcd.rc is in logical coordinates
 		RECT &rcItem = lpNMCustomDraw->nmcd.rc;
 
 		DWORD dwStyle = pT->GetStyle();
@@ -920,6 +944,9 @@ public:
 		{
 			pT->DrawItem_TabInactive(dwStyle, lpNMCustomDraw, rcTab);
 		}
+
+        if (bDragdroped)
+            return;
 
 		pT->DrawItem_ImageAndText(dwStyle, lpNMCustomDraw, nIconVerticalCenter, rcTab, rcText);
 	}
