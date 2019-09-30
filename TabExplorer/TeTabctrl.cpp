@@ -6,6 +6,7 @@
 #include "ShellTabItem.h"
 #include "ShellBrowserEx.h"
 #include "ExplorerWindow.h" //
+#include "WspFunctions.h"
 #include "TeTabctrl.h"
 
 LRESULT CTeTabCtrl::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -65,4 +66,47 @@ LRESULT CTeTabCtrl::OnCloseButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 
     return 0;
 }
+
+BOOL CTeTabCtrl::InternalRemoveItem(int nItem)
+{
+    int nItemCount = GetItemCount();
+    if ((nItem < 0) || (nItem >= nItemCount))
+        return FALSE;
+
+    if (m_iDragItem == nItem)
+        m_iDragItem = -1;
+
+    if (m_iDragItemOriginal == nItem)
+        m_iDragItemOriginal = -1;
+
+    int nCurSel = GetCurSel();
+    if (nCurSel == nItem)
+    {
+        if (nItem == (nItemCount - 1))
+            SetCurSel(nItem - 1);
+        else
+            SetCurSel(nItem + 1);
+    }
+    
+    return DeleteItem(nItem);
+}
+
+int CTeTabCtrl::InternalInsertItem(int nItem, LPCTSTR sText, int nImage, LPCTSTR sToolTip, ULONG_PTR data, bool bSelectItem)
+{
+    int index = InsertItem(nItem, sText, nImage, sToolTip, false);
+    if (index >= 0)
+    {
+        SetItemData(index, data);
+        if(bSelectItem)
+            SetCurSel(index);
+    }
+
+    return index;
+}
+
+
+/*
+int InsertItem(int nItem, LPCTSTR sText = NULL, int nImage = -1, LPCTSTR sToolTip = NULL, bool bSelectItem = false)
+SetItemDrag();
+*/
 

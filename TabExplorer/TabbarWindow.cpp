@@ -10,9 +10,12 @@
 #include "ExplorerWindow.h" //
 #include "TabbarWindow.h"
 #include "ShellTabItem.h"
+/*
 #include "DataObject.h"
 #include "DragDropSource.h"
 #include "DragDropData.h"
+*/
+#include "ShellFoldersMap.h"
 
 
 BOOL g_bUsingLargeButton = FALSE;
@@ -316,30 +319,6 @@ void CTabbarWindow::SaveRebarBreakState()
     }
 }
 
-BOOL CTabbarWindow::GetCIDLDataByParseName(const TString& parseName, CIDLEx& cidl, CIDListData& IdlData)
-{
-    if (IsNamespacePath(parseName))
-    {
-        if (!m_shlFolderMap.FindFolder(parseName, IdlData))
-        {
-            //log here
-            return FALSE;
-        }
-        
-        auto rawIdl = IdlData.GetIDLData();
-        cidl.CreateByIdListData(std::get<0>(rawIdl), std::get<1>(rawIdl));
-    }
-    else
-    {
-        cidl = CIDLEx::CIDLFromFullPath(parseName);
-        if (cidl.IsEmpty())
-            return FALSE;
-        IdlData = CIDListData(&cidl, parseName);
-    }
-
-    return TRUE;
-}
-
 void CTabbarWindow::InitializeFirstTabOnStartup(const TString& strUrl)
 {
     if (!m_bInitFirstTabs)
@@ -381,20 +360,22 @@ BOOL CTabbarWindow::AddNewTab(const TString& path)
 
         psti->NavigatedTo(IdlData, cidl, path);
         int iconIdx = GetShellObjectIcon(cidl);
-        int index = m_TabCtrl.InsertItem(nInsertItem, psti->GetTitle().c_str(), iconIdx, psti->GetTooltip().c_str());
-        if (index >= 0)
+
+        bool bSelected = g_bSwitchNewTab ? true : false;
+        int index = m_TabCtrl.InternalInsertItem(nInsertItem, psti->GetTitle().c_str(), iconIdx, psti->GetTooltip().c_str(), (ULONG_PTR)psti, bSelected);
+
+        if (index < 0)
         {
-            m_TabCtrl.SetItemData(index, (ULONG_PTR)psti);
+            delete psti;
+            return FALSE;
         }
 
-        if(g_bSwitchNewTab)
-            m_TabCtrl.SetCurSel(index);
-
+        return TRUE;
         //m_bNavigatedByTab = true;
         //m_ShellBrowser.Navigate(cidl);
     }
 
-    return TRUE;
+    return FALSE;
 }
 
 BOOL CTabbarWindow::NavigateCurrentTab(bool bBack)
@@ -416,7 +397,7 @@ BOOL CTabbarWindow::BeforeNavigate(CIDLEx& target, bool bAutoNav)
     TString parseName = target.GetParseName();
     if (!m_bNavigatedByTab)
     {
-        m_shlFolderMap.InsertFolder(parseName, target);
+        TeGetFolderMap().InsertFolder(parseName, target);
         int nItem = m_TabCtrl.GetCurSel();
         if (nItem >= 0)
         {

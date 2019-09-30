@@ -4,7 +4,6 @@
 #include "ShellWrapper.h"
 #include "ShellBrowserEx.h"
 #include "SystemFolders.h"
-#include "ShellFoldersMap.h"
 #include "WzToolBar.h"
 
 
@@ -119,7 +118,6 @@ protected:
     void GetBarWndRect(RECT& rc);
     void SaveRebarBreakState();
 
-    BOOL GetCIDLDataByParseName(const TString& parseName, CIDLEx& cidl, CIDListData& IdlData);
     void InitializeFirstTabOnStartup(const TString& strUrl);
 private:
     //CWindow m_Toolbar;
@@ -133,7 +131,6 @@ private:
     bool m_bSubclassedRebar; // the rebar is subclassed
     bool m_bBandNewLine; // our band is on a new line (has RBBS_BREAK style)
     CSystemFolders m_sysFolder;
-    CShellFoldersMap m_shlFolderMap;
     CShellBrowserEx m_ShellBrowser;
     
     //for parent explorer window

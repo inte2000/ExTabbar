@@ -349,7 +349,7 @@ static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam)
     FindChildClass *find = (FindChildClass *)lParam;
     TCHAR className[256];
     ::GetClassName(hwnd, className, _countof(className));
-    ATLTRACE(_T("EnumChildProc find class %s\n"), className);
+    //ATLTRACE(_T("EnumChildProc find class %s\n"), className);
     if (find->wndCaption != nullptr)
     {
         TCHAR caption[256] = { 0 };

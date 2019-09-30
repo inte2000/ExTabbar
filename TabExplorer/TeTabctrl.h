@@ -49,6 +49,9 @@ protected:
     //LRESULT OnSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
     LRESULT OnCloseButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
+    BOOL InternalRemoveItem(int nItem);
+    int InternalInsertItem(int nItem, LPCTSTR sText, int nImage, LPCTSTR sToolTip, ULONG_PTR data, bool bSelectItem = false);
+
 protected:
     CImageList m_sysImgList;
     CShellBrowserEx* m_pShellBrowser;

@@ -14,6 +14,9 @@ static LPCTSTR ShlParseNames[] =
 
 bool CShellFoldersMap::Initialize()
 {
+    if (m_bInitialized)
+        return true;
+
     SFGAOF aog;
     LPITEMIDLIST pidlxx = nullptr;
     for (int i = 0; i < _countof(ShlParseNames); i++)
@@ -30,11 +33,15 @@ bool CShellFoldersMap::Initialize()
         }
     }
 
+    m_bInitialized = true;
     return true;
 }
 
 bool CShellFoldersMap::InsertFolder(const TString& shlName, LPCITEMIDLIST pidl)
 {
+    if (!m_bInitialized)
+        return false;
+
     auto it = m_ShlFolders.find(shlName);
     if (it == m_ShlFolders.end())
     {
@@ -47,6 +54,9 @@ bool CShellFoldersMap::InsertFolder(const TString& shlName, LPCITEMIDLIST pidl)
 
 bool CShellFoldersMap::FindFolder(const TString& shlName, CIDListData& data) const
 {
+    if (!m_bInitialized)
+        return false;
+
     auto it = m_ShlFolders.find(shlName);
     if (it != m_ShlFolders.end())
     {
@@ -55,4 +65,16 @@ bool CShellFoldersMap::FindFolder(const TString& shlName, CIDListData& data) con
     }
 
     return false;
+}
+
+CShellFoldersMap& TeGetFolderMap()
+{
+    static CShellFoldersMap s_shlFolderMap;
+
+    if (!s_shlFolderMap.IsInitialized())
+    {
+        s_shlFolderMap.Initialize();
+    }
+
+    return s_shlFolderMap;
 }
