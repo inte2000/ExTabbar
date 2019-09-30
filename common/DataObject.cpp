@@ -1,5 +1,5 @@
 #include "pch.h"
-#include <strsafe.h>
+//#include <strsafe.h>
 #include "SystemFunctions.h"
 #include "DataObject.h"
 
@@ -42,15 +42,8 @@ BOOL CDataObject::SetDropTip(DROPIMAGETYPE type, LPCTSTR pszMsg, LPCTSTR pszInse
 {
     DROPDESCRIPTION dd = { type };
 
-#ifdef UNICODE
-    StringCchCopyW(dd.szMessage, ARRAYSIZE(dd.szMessage), pszMsg);
-    StringCchCopyW(dd.szInsert, ARRAYSIZE(dd.szInsert), pszInsert ? pszInsert : L"");
-#else
-    int _convert = ::MultiByteToWideChar(CP_ACP, 0, (LPCCH)pszMsg, -1, dd.szMessage, ARRAYSIZE(dd.szMessage));
-    dd.szMessage[_convert - 1] = 0;
-    _convert = ::MultiByteToWideChar(CP_ACP, 0, (LPCCH)pszInsert, -1, dd.szInsert, ARRAYSIZE(dd.szInsert));
-    dd.szInsert[_convert - 1] = 0;
-#endif
+    WStrFromTString(dd.szMessage, ARRAYSIZE(dd.szMessage), pszMsg);
+    WStrFromTString(dd.szInsert, ARRAYSIZE(dd.szInsert), pszInsert ? pszInsert : L"");
 
     static CLIPFORMAT s_cfDropDescription = 0;
     return SetBlob(GetClipboardFormat(&s_cfDropDescription, CFSTR_DROPDESCRIPTION), &dd, sizeof(dd));
@@ -59,7 +52,7 @@ BOOL CDataObject::SetDropTip(DROPIMAGETYPE type, LPCTSTR pszMsg, LPCTSTR pszInse
 // IUnknown interface
 HRESULT STDMETHODCALLTYPE CDataObject::QueryInterface(REFIID iid, void** ppvObject)
 {
-    if (iid == IID_IDropSource || iid == IID_IUnknown)
+    if (iid == IID_IDataObject || iid == IID_IUnknown)
     {
         *ppvObject = this;
         AddRef();
