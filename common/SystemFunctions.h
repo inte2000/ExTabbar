@@ -2,11 +2,36 @@
 
 extern HINSTANCE g_Instance;
 
-BOOL IsWindowsVersionEqual(DWORD major, DWORD minor, DWORD servicePack);
-BOOL IsWindowsXP();
-BOOL IsWindows7();
-BOOL IsWindows8();
-BOOL IsWindows10();
+BOOL VerifyWindowsVersion(DWORD major, DWORD minor, DWORD servicePack, int op);
+
+inline BOOL IsWinVersionEqual(DWORD major, DWORD minor, DWORD servicePack)
+{
+    return VerifyWindowsVersion(major, minor, servicePack, VER_EQUAL);
+}
+inline BOOL IsWinVersionGreatEqual(DWORD major, DWORD minor, DWORD servicePack)
+{
+    return VerifyWindowsVersion(major, minor, servicePack, VER_GREATER_EQUAL);
+}
+inline BOOL IsWindowsXP()
+{
+    return IsWinVersionEqual(5, 1, 0);
+}
+inline BOOL IsWindowsVista()
+{
+    return IsWinVersionEqual(6, 0, 0);
+}
+inline BOOL IsWindows7()
+{
+    return (IsWinVersionEqual(6, 1, 0) || IsWinVersionEqual(6, 1, 1));
+}
+inline BOOL IsWindows8()
+{
+    return (IsWinVersionEqual(6, 2, 0) || IsWinVersionEqual(6, 3, 0));
+}
+inline BOOL IsWindows10()
+{
+    return IsWinVersionEqual(10, 0, 0);
+}
 
 TString GetAppPathName(HMODULE hMod, LPCTSTR lpName);
 TString GetSystemFolderPath(int nFolder);

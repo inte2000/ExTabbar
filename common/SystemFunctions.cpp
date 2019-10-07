@@ -6,23 +6,6 @@
 
 HINSTANCE g_Instance = NULL;
 
-BOOL IsWindowsVersionEqual(DWORD major, DWORD minor, DWORD servicePack)
-{
-    OSVERSIONINFOEX ove = { 0 };
-    DWORDLONG dwlConditionMask = 0;
-
-    ove.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    ove.dwMajorVersion = major;
-    ove.dwMinorVersion = minor;
-    ove.wServicePackMajor = (WORD)servicePack;
-
-    DWORD mask = VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR;
-    VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_EQUAL);
-    VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_EQUAL);
-    VER_SET_CONDITION(dwlConditionMask, VER_SERVICEPACKMAJOR, VER_EQUAL);
-
-    return VerifyVersionInfo(&ove, mask, dwlConditionMask);
-}
 /*
 Windows 10     10.0
 Windows Server 2016   10.0
@@ -53,24 +36,22 @@ Windows 2.0 	2.11
 Windows 1.0 	1.04
 */
 
-BOOL IsWindowsXP()
+BOOL VerifyWindowsVersion(DWORD major, DWORD minor, DWORD servicePack, int op)
 {
-    return IsWindowsVersionEqual(5, 1, 0);
-}
+    OSVERSIONINFOEX ove = { 0 };
+    DWORDLONG dwlConditionMask = 0;
 
-BOOL IsWindows7()
-{
-    return (IsWindowsVersionEqual(6, 1, 0) || IsWindowsVersionEqual(6, 1, 1));
-}
+    ove.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    ove.dwMajorVersion = major;
+    ove.dwMinorVersion = minor;
+    ove.wServicePackMajor = (WORD)servicePack;
 
-BOOL IsWindows8()
-{
-    return (IsWindowsVersionEqual(6, 2, 0) || IsWindowsVersionEqual(6, 3, 0));
-}
+    DWORD mask = VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR; //VER_SERVICEPACKMINOR
+    VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, op);
+    VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, op);
+    VER_SET_CONDITION(dwlConditionMask, VER_SERVICEPACKMAJOR, op);
 
-BOOL IsWindows10()
-{
-    return IsWindowsVersionEqual(10, 0, 0);
+    return VerifyVersionInfo(&ove, mask, dwlConditionMask);
 }
 
 TString GetAppPathName(HMODULE hMod, LPCTSTR lpName)
