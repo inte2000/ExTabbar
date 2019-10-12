@@ -260,6 +260,7 @@
     <ClInclude Include="..\ui\DotNetTabCtrl.h" />
     <ClInclude Include="..\ui\MemDC.h" />
     <ClInclude Include="AddressBar.h" />
+    <ClInclude Include="AppConfig.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="DragDropData.h" />
     <ClInclude Include="ExplorerWindow.h" />

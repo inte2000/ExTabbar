@@ -20,7 +20,7 @@ public:
 
     bool RegisterDropTarget(HWND hWnd)
     {
-        //CoCreateInstance(CLSID_DragDropHelper, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&m_pDropTargetHelper));
+        CoCreateInstance(CLSID_DragDropHelper, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&m_pDropTargetHelper));
 
         HRESULT hr = ::RegisterDragDrop(hWnd, this);
         if (hr == S_OK)
@@ -41,6 +41,7 @@ public:
         }
     }
 
+    //void SetSourceWnd(HWND hWnd) {}
 
     // IUnknown interface
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** ppvObject)
@@ -79,17 +80,22 @@ public:
     //IDropTarget interface
     HRESULT STDMETHODCALLTYPE DragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
     {
-        POINT ppt = { pt.x, pt.y };
+        T* pT = static_cast<T*>(this);
+
+        ATLTRACE(_T("CDropTarget::DragEnter(DataObject=%p) m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d\n"),
+            pDataObj, m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
+
         // does the dataobject contain data we want?
-        m_bAllowDrop = QueryDataObject(pDataObj);
+        m_bAllowDrop = pT->IsDragAccepted(pDataObj);
         if (m_bAllowDrop)
         {
-            T* pT = static_cast<T*>(this);
+            ATLTRACE(_T("CDropTarget::DragEnter(DataObject=%p) AllowDrop with m_hGropREgWnd=0x%x\n"),
+                                                               m_pDataObject, m_hTargetWnd);
+            m_pDataObject = pDataObj;
             // get the dropeffect based on keyboard state
             *pdwEffect = DropEffect(grfKeyState, pt, *pdwEffect);
             pT->SetFocus();
-            //SetFocus(m_hWnd);
-            //PositionCursor(GetWnd(), pt);
+            pT->OnTargetDragEnter(pDataObj, &pt, grfKeyState);
         }
         else
         {
@@ -98,31 +104,45 @@ public:
 
         if (m_pDropTargetHelper != nullptr)
         {
+            POINT ppt = { pt.x, pt.y };
             m_pDropTargetHelper->DragEnter(m_hTargetWnd, pDataObj, &ppt, *pdwEffect);
         }
 
-        ATLTRACE(_T("CDropTarget::DragEnter() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d"), 
-            m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
         return S_OK;
     }
 
     HRESULT STDMETHODCALLTYPE DragLeave()
     {
+        T* pT = static_cast<T*>(this);
+
+        ATLTRACE(_T("CDropTarget::DragLeave(DataObject=%p) m_hGropREgWnd=0x%x\n"), m_pDataObject, m_hTargetWnd);
+        
+        if (m_bAllowDrop)
+        {
+            pT->OnTargetDragLeave();
+            m_pDataObject = nullptr;
+        }
+
         if (m_pDropTargetHelper != nullptr)
         {
             m_pDropTargetHelper->DragLeave();
         }
-        ATLTRACE(_T("CDropTarget::DragLeave() m_hGropREgWnd=0x%x"), m_hTargetWnd);
         return S_OK;
     }
 
     HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
     {
         POINT ppt = { pt.x, pt.y };
+        T* pT = static_cast<T*>(this);
+
+        ATLTRACE(_T("CDropTarget::DragOver(DataObject=%p) m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d\n"),
+            m_pDataObject, m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
+
         if (m_bAllowDrop)
         {
             *pdwEffect = DropEffect(grfKeyState, pt, *pdwEffect);
             //PositionCursor(GetWnd(), pt);
+            pT->OnTargetDragOver(&ppt, grfKeyState);
         }
         else
         {
@@ -132,8 +152,6 @@ public:
         {
             m_pDropTargetHelper->DragOver(&ppt, *pdwEffect);
         }
-        ATLTRACE(_T("CDropTarget::DragOver() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d"),
-            m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
         return S_OK;
     }
 
@@ -145,8 +163,9 @@ public:
         {
             T* pT = static_cast<T*>(this);
             //pT->DropData(GetWnd(), pDataObj);
-            //pT->DropData(pDataObj);
+            pT->OnTargetDropData(pDataObj, grfKeyState);
             *pdwEffect = DropEffect(grfKeyState, pt, *pdwEffect);
+
         }
         else
         {
@@ -157,7 +176,7 @@ public:
         {
             m_pDropTargetHelper->Drop(pDataObj, &ppt, *pdwEffect);
         }
-        ATLTRACE(_T("CDropTarget::Drop() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d"),
+        ATLTRACE(_T("CDropTarget::Drop() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d\n"),
             m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
         return S_OK;
     }
@@ -191,14 +210,6 @@ protected:
         }
 
         return dwEffect;
-    }
-
-    bool QueryDataObject(IDataObject* pDataObject)
-    {
-        FORMATETC fmtetc = { CF_TEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
-
-        // does the data object support CF_TEXT using a HGLOBAL?
-        return pDataObject->QueryGetData(&fmtetc) == S_OK ? true : false;
     }
 
 protected:

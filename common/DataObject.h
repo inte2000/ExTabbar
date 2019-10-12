@@ -1,13 +1,11 @@
 #pragma once
 
-#include <vector>
 
 typedef struct tagDATASTORAGE
 {
-    FORMATETC *formatEtc;
-    STGMEDIUM *stgMedium;
+    FORMATETC formatEtc;
+    STGMEDIUM stgMedium;
 }DATASTORAGETYPE, *PDATASTORAGETYPE;
-
 
 
 class CDataObject : public IDataObject
@@ -43,13 +41,14 @@ public:
 
 protected:
     HRESULT InternalAddData(FORMATETC* pFormatEtc, STGMEDIUM* pMedium, BOOL fRelease);
-    int LookupFormatEtc(FORMATETC* pFormatEtc);
-    HRESULT CopyMedium(STGMEDIUM* pMedDest, STGMEDIUM* pMedSrc, FORMATETC* pFmtSrc);   
+    HRESULT FindFormatEtc(FORMATETC* pFormatEtc, PDATASTORAGETYPE *ppde, BOOL bAdd);
     HRESULT SetBlob(CLIPFORMAT cf, const void* pvBlob, UINT cbBlob);
+    HRESULT AddRefStgMedium(STGMEDIUM* pstgmIn, STGMEDIUM* pstgmOut, BOOL fCopyIn);
 
 protected:
     ULONG m_lRefCount;
-    std::vector<DATASTORAGETYPE>  m_dataStorage;
+    DATASTORAGETYPE *m_dataStorage;
+    UINT   m_dsCount;
 };
 
 HRESULT CreateDataObject(FORMATETC* fmtetc, STGMEDIUM* stgmeds, UINT count, IDataObject** ppDataObject);

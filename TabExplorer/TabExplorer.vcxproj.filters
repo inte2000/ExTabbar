@@ -157,6 +157,10 @@
     <ClInclude Include="DragDropData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AppConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TabExplorer.cpp">
@@ -267,6 +271,9 @@
     <ClCompile Include="DragDropData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AppConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>    
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TabExplorer.rc">

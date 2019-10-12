@@ -9,6 +9,118 @@
 #include "WspFunctions.h"
 #include "TeTabctrl.h"
 
+bool CTeTabCtrl::PrepareDataObject(int nItem, const POINT& pt, IDataObject** ppDataObject)
+{
+    FORMATETC fmtetc = { CF_PRV_TETAB_DRAG, NULL, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+    STGMEDIUM stgmed;
+
+    *ppDataObject = nullptr;
+
+    stgmed.hGlobal = ::GlobalAlloc(GHND | GMEM_SHARE, sizeof(TeTabDragDrop));
+    if (stgmed.hGlobal == NULL)
+        return false;
+
+    TeTabDragDrop *pDropData = (TeTabDragDrop *)::GlobalLock(stgmed.hGlobal);
+    if (pDropData == nullptr)
+    {
+        ::GlobalFree(stgmed.hGlobal);
+        return false;
+    }
+
+    pDropData->nDragItem = GetCurSel();
+    GetItemId(nItem, pDropData->DragItemId);
+    pDropData->hSourceWnd = m_hWnd;
+    CShellTabItem* pTabItem = (CShellTabItem*)GetItemData(pDropData->nDragItem);
+    WStrFromTString(pDropData->wcUrl, MAX_PATH, pTabItem->GetUrl());
+
+    auto rtn = pTabItem->GetCurrentIDLData();
+    pDropData->idlSize = 0;
+    if (std::get<1>(rtn) <= 512)
+    {
+        ::CopyMemory(pDropData->idlData, std::get<0>(rtn), std::get<1>(rtn));
+        pDropData->idlSize = std::get<1>(rtn);
+    }
+
+    ::GlobalUnlock(stgmed.hGlobal);
+    stgmed.tymed = TYMED_HGLOBAL;
+    stgmed.pUnkForRelease = nullptr;
+
+    HRESULT hr = CreateDataObject(&fmtetc, &stgmed, 1, ppDataObject);
+    if (hr == S_OK)
+        return true;
+
+    return false;
+}
+
+bool CTeTabCtrl::QueryContinueDrag(const POINT* ptMouse, BOOL fEscapePressed, DWORD grfKeyState)
+{
+    HWND wnd = ::WindowFromPoint(*ptMouse);
+
+    if (wnd != m_hWnd)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool CTeTabCtrl::GiveFeedback(const POINT* ptMouse, DWORD dwEffect)
+{
+    HWND wnd = ::WindowFromPoint(*ptMouse);
+
+    if (wnd != m_hWnd)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool CTeTabCtrl::IsDragAccepted(IDataObject* pDataObj)
+{
+    ATLTRACE(_T("CTeTabCtrl::IsDragAccepted invoked!\n"));
+    FORMATETC fmtetc = { CF_PRV_TETAB_DRAG, NULL, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+
+    // does the data object support CF_TEXT using a HGLOBAL?
+    return pDataObj->QueryGetData(&fmtetc) == S_OK ? true : false;
+}
+
+void CTeTabCtrl::OnTargetDragEnter(IDataObject* pDataObj, const POINTL* pt, DWORD grfKeyState)
+{
+    ATLTRACE(_T("CTeTabCtrl::OnTargetDragEnter(IDataObject=%p) invoked!\n"), pDataObj);
+}
+
+void CTeTabCtrl::OnTargetDropData(IDataObject* pDataObj, DWORD grfKeyState)
+{
+    ATLTRACE(_T("CTeTabCtrl::OnTargetDropData(IDataObject=%p) invoked!\n"), pDataObj);
+}
+
+void CTeTabCtrl::OnTargetDragOver(const POINT* pt, DWORD grfKeyState)
+{
+    ATLTRACE(_T("CTeTabCtrl::OnTargetDragOver(m_pDataObject=%p, x=%d,y=%d,grfKeyState=%x) invoked!\n"), m_pDataObject, pt->x, pt->y, grfKeyState);
+    POINT ptMouse = *pt;
+    ::ScreenToClient(m_hTargetWnd, &ptMouse);
+    RECT rcItem = { 0 };
+    int nItem = HitTestForDrag(&ptMouse, &rcItem);
+    ATLTRACE(_T("CTeTabCtrl::OnTargetDragOver(x=%d,y=%d,grfKeyState=%x, hittest=%d) invoked!\n"), ptMouse.x, ptMouse.y, grfKeyState, nItem);
+    if ((nItem >= 0) && (nItem != m_iDragItem))
+    {
+        int wrange = (rcItem.right - rcItem.left) / 5;
+        if ( ((nItem > m_iDragItem) && ((ptMouse.x - rcItem.left) >= wrange))
+            || ((nItem < m_iDragItem) && ((rcItem.right - ptMouse.x) >= wrange)) )
+        {
+            SwapItemPositions(m_iDragItem, nItem, false, false);
+            RedrawWindow();
+        }
+    }
+}
+
+void CTeTabCtrl::OnTargetDragLeave()
+{
+    ATLASSERT(m_pDataObject != nullptr);
+    ATLTRACE(_T("CTeTabCtrl::OnTargetDragLeave(m_pDataObject=%p) invoked!\n"), m_pDataObject);
+}
+
 LRESULT CTeTabCtrl::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     LogTrace(_T("CTeTabCtrl::OnCreate() invoked"));
@@ -25,6 +137,8 @@ LRESULT CTeTabCtrl::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     if(!oldImgList.IsNull())
         oldImgList.Destroy();
 
+    RegisterDropTarget(m_hWnd);
+
     bHandled = FALSE;
     return 0;
 }
@@ -35,6 +149,7 @@ LRESULT CTeTabCtrl::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
     if (hSysImgList != NULL)
         ::ImageList_Destroy(hSysImgList);
     
+    DeregisterDropTarget();
     bHandled = FALSE;
     return 0;
 }
@@ -46,6 +161,48 @@ LRESULT CTeTabCtrl::OnSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
     return 0;
 }
 */
+LRESULT CTeTabCtrl::OnBeginItemDrag(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+{
+    NMCTCITEM *pItem = (NMCTCITEM *)pnmh;
+    
+    CDropSource dropsrc(m_hWnd);
+    dropsrc.SetCallback(this);
+    IDataObject* pDataObject = nullptr;
+    if (PrepareDataObject(m_iDragItem, pItem->pt, &pDataObject))
+    {
+        dropsrc.SetDataObject(pDataObject);
+        POINT ptOffset = pItem->pt;
+        HBITMAP dragImg = GetItemDragImage(pItem->iItem, &ptOffset, nullptr);
+        if (dragImg != NULL)
+        {
+            dropsrc.InitializeFromBitmap(dragImg, &ptOffset, RGB(0, 0, 0));
+        }
+
+        DWORD dwEffect = 0;
+        HRESULT rtn = dropsrc.DoDragDropEx(DROPEFFECT_MOVE/* | DROPEFFECT_COPY*/, &dwEffect);
+        ATLTRACE(_T("DoDragDropEx() rtn = %x, dwEffect=%x\n"), rtn, dwEffect);
+        if (rtn == DRAGDROP_S_DROP)
+        {
+            FORMATETC fmtetc = { CF_PRV_TETAB_DRAG, NULL, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+            STGMEDIUM stgmed;
+
+            CIDLEx cidl;
+            if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK)
+            {
+                // we asked for the data as a HGLOBAL, so access it appropriately
+                //SetWindowText(hwnd, (char*)data);
+                ::GlobalUnlock(stgmed.hGlobal);
+                ::ReleaseStgMedium(&stgmed);
+            }
+        }
+        SetItemDragDrop(m_iDragItem, false);
+        m_iDragItem = -1;
+
+        pDataObject->Release();
+    }
+
+    return 1;
+}
 
 LRESULT CTeTabCtrl::OnCloseButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {
@@ -56,7 +213,7 @@ LRESULT CTeTabCtrl::OnCloseButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
     if (pNtItem->iItem >= 0)
     {
         int nItemCount = GetItemCount();
-        if (nItemCount == 1) //last tab￡?should give an alert to close explorer window?
+        if (nItemCount == 1) //last tab，should give an alert to close explorer window?
         {
         }
         InternalRemoveItem(pNtItem->iItem);

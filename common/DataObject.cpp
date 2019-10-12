@@ -3,37 +3,77 @@
 #include "SystemFunctions.h"
 #include "DataObject.h"
 
+#define  MAX_DATASTORAGE_SIZE    64
+
+HGLOBAL GlobalClone(HGLOBAL hglobIn)
+{
+    HGLOBAL hglobOut = NULL;
+
+    LPVOID pvIn = GlobalLock(hglobIn);
+    if (pvIn) 
+    {
+        SIZE_T cb = GlobalSize(hglobIn);
+        HGLOBAL hglobOut = GlobalAlloc(GMEM_FIXED, cb);
+        if (hglobOut) 
+        {
+            CopyMemory(hglobOut, pvIn, cb);
+        }
+        GlobalUnlock(hglobIn);
+    }
+
+    return hglobOut;
+}
+
+IUnknown* GetCanonicalIUnknown(IUnknown* punk)
+{
+    IUnknown* punkCanonical = nullptr;
+    if (punk && SUCCEEDED(punk->QueryInterface(IID_IUnknown, (LPVOID*)& punkCanonical)))
+    {
+        punkCanonical->Release();
+    }
+    else
+    {
+        punkCanonical = punk;
+    }
+
+    return punkCanonical;
+}
+
 CDataObject::CDataObject()
 {
     m_lRefCount = 1;
+    m_dsCount = 0;
+    m_dataStorage = (PDATASTORAGETYPE)::CoTaskMemAlloc(sizeof(DATASTORAGETYPE) * MAX_DATASTORAGE_SIZE);
 }
 
-CDataObject::CDataObject(FORMATETC* fmt, STGMEDIUM* stgmed, int count)
+CDataObject::CDataObject(FORMATETC* fmt, STGMEDIUM* stgmed, int count) : CDataObject()
 {
-    m_lRefCount = 1;
-    for (int i = 0; i < count; i++)
+    int dc = count > MAX_DATASTORAGE_SIZE ? MAX_DATASTORAGE_SIZE : count;
+    for (int i = 0; i < dc; i++)
     {
-        InternalAddData(&fmt[i], &stgmed[i], FALSE);
+        InternalAddData(&fmt[i], &stgmed[i], TRUE);
     }
 }
 
 CDataObject::~CDataObject()
 {
-    int nSize = static_cast<int>(m_dataStorage.size());    
-    for (int i = 0; i < nSize; ++i) 
+    for (UINT i = 0; i < m_dsCount; ++i)
     { 
-        DATASTORAGETYPE& dataEntry = m_dataStorage.at(i);        
-        ::ReleaseStgMedium(dataEntry.stgMedium);        
-        delete dataEntry.stgMedium;        
-        delete dataEntry.formatEtc; 
+        if(m_dataStorage[i].formatEtc.ptd != nullptr)
+            ::CoTaskMemFree(m_dataStorage[i].formatEtc.ptd);
+
+        ::ReleaseStgMedium(&m_dataStorage[i].stgMedium);
     }
+    ::CoTaskMemFree(m_dataStorage);
+    m_dataStorage = nullptr;
+    m_dsCount = 0;
 }
 
 __inline CLIPFORMAT GetClipboardFormat(CLIPFORMAT* pcf, PCWSTR pszForamt)
 {
     if (*pcf == 0)
     {
-        *pcf = (CLIPFORMAT)RegisterClipboardFormat(pszForamt);
+        *pcf = (CLIPFORMAT)::RegisterClipboardFormat(pszForamt);
     }
     return *pcf;
 }
@@ -82,6 +122,7 @@ ULONG STDMETHODCALLTYPE CDataObject::Release(void)
     return ulRefCount;
 }
 
+//CF_TEXT
 // IDataObject interface
 HRESULT STDMETHODCALLTYPE CDataObject::GetData(FORMATETC* pFormatEtc, STGMEDIUM* pMedium)
 {
@@ -90,18 +131,15 @@ HRESULT STDMETHODCALLTYPE CDataObject::GetData(FORMATETC* pFormatEtc, STGMEDIUM*
         return E_INVALIDARG;
     }
 
-    pMedium->hGlobal = NULL;
-    for (const auto& dataEntry: m_dataStorage)
-    { 
-        if ((pFormatEtc->tymed & dataEntry.formatEtc->tymed) 
-            && (pFormatEtc->dwAspect == dataEntry.formatEtc->dwAspect) 
-            && (pFormatEtc->cfFormat == dataEntry.formatEtc->cfFormat))
-        { 
-            return CopyMedium(pMedium, dataEntry.stgMedium, dataEntry.formatEtc);
-        } 
-    }     
-    
-    return DV_E_FORMATETC;
+    PDATASTORAGETYPE pde = nullptr;
+    //ATLTRACE(_T("CDataObject::GetData(cfFormat=%d, tymed=%d)\n"), pFormatEtc->cfFormat, pFormatEtc->tymed);
+    HRESULT hr = FindFormatEtc(pFormatEtc, &pde, FALSE);
+    if (SUCCEEDED(hr))
+    {
+        hr = AddRefStgMedium(&pde->stgMedium, pMedium, FALSE);
+    }
+
+    return hr;
 }
 
 HRESULT STDMETHODCALLTYPE CDataObject::GetDataHere(FORMATETC* pFormatEtc, STGMEDIUM* pMedium)
@@ -109,7 +147,7 @@ HRESULT STDMETHODCALLTYPE CDataObject::GetDataHere(FORMATETC* pFormatEtc, STGMED
     UNREFERENCED_PARAMETER(pFormatEtc);
     UNREFERENCED_PARAMETER(pMedium);
 
-    return E_NOTIMPL;
+    return DV_E_FORMATETC;// E_NOTIMPL;
 }
 
 HRESULT STDMETHODCALLTYPE CDataObject::QueryGetData(FORMATETC* pFormatEtc)
@@ -119,37 +157,14 @@ HRESULT STDMETHODCALLTYPE CDataObject::QueryGetData(FORMATETC* pFormatEtc)
         return E_INVALIDARG; 
     }
 
-    if (!(DVASPECT_CONTENT & pFormatEtc->dwAspect)) 
-    { 
-        return DV_E_DVASPECT; 
-    }
-    HRESULT hr = DV_E_TYMED;    
-    for (const auto& dataEnrty : m_dataStorage)
-    {
-        if (dataEnrty.formatEtc->tymed & pFormatEtc->tymed)
-        { 
-            if (dataEnrty.formatEtc->cfFormat == pFormatEtc->cfFormat)
-            { 
-                return S_OK; 
-            } 
-            else 
-            { 
-                hr = DV_E_CLIPFORMAT; 
-            } 
-        } 
-        else
-        { 
-            hr = DV_E_TYMED; 
-        } 
-    } 
-
-    return hr;
+    PDATASTORAGETYPE pde = nullptr;
+    return FindFormatEtc(pFormatEtc, &pde, FALSE);
 }
 
 HRESULT STDMETHODCALLTYPE CDataObject::GetCanonicalFormatEtc(FORMATETC* pFormatEct, FORMATETC* pFormatEtcOut)
 {
-    *pFormatEtcOut = *pFormatEct;
-    pFormatEtcOut->ptd = NULL;
+    //*pFormatEtcOut = *pFormatEct;
+    //pFormatEtcOut->ptd = nullptr;
     return DATA_S_SAMEFORMATETC;
 }
 
@@ -159,13 +174,43 @@ HRESULT STDMETHODCALLTYPE CDataObject::SetData(FORMATETC* pFormatEtc, STGMEDIUM*
     { 
         return E_INVALIDARG; 
     }     
-    
-    if (pFormatEtc->tymed != pMedium->tymed)
-    { 
-        return E_FAIL; 
-    }    
+    //if (!fRelease) 
+    //    return E_NOTIMPL;
 
-    return InternalAddData(pFormatEtc, pMedium, fRelease);
+   //ATLTRACE(_T("CDataObject::SetData(cfFormat=%d, tymed=%d, fRelease=%d, stgTymed=%d)\n"), 
+                //pFormatEtc->cfFormat, pFormatEtc->tymed, fRelease, pMedium->tymed);
+    PDATASTORAGETYPE pde = nullptr;
+    HRESULT hr = FindFormatEtc(pFormatEtc, &pde, TRUE);
+    if (SUCCEEDED(hr))
+    {
+        if (pde->stgMedium.tymed)
+        {
+            ::ReleaseStgMedium(&pde->stgMedium);
+            ::ZeroMemory(&pde->stgMedium, sizeof(STGMEDIUM));
+        }
+
+        if (fRelease)
+        {
+            pde->stgMedium = *pMedium;
+            hr = S_OK;
+        }
+        else
+        {
+            hr = AddRefStgMedium(pMedium, &pde->stgMedium, TRUE);
+        }
+        pde->formatEtc.tymed = pde->stgMedium.tymed;
+
+        //Subtlety! Break circular reference loop
+        if (GetCanonicalIUnknown(pde->stgMedium.pUnkForRelease) 
+            == GetCanonicalIUnknown(static_cast<IDataObject *>(this)))
+        {
+            pde->stgMedium.pUnkForRelease->Release();
+            pde->stgMedium.pUnkForRelease = nullptr;
+        }
+    }
+
+    ATLTRACE(_T("DataObject::SetData(obj=%p) add  cfFormat=%d, stgMedium=0x%x (tymed=%d)\n"), this, pFormatEtc->cfFormat, pMedium->hGlobal, pMedium->tymed);
+    return hr;
 }
 
 //派生类需要重写这个接口
@@ -175,6 +220,9 @@ HRESULT STDMETHODCALLTYPE CDataObject::EnumFormatEtc(DWORD dwDirection, IEnumFOR
     { 
         return E_INVALIDARG; 
     }    
+    
+    //ATLTRACE(_T("CDataObject::EnumFormatEtc(dwDirection=%d)\n"),   dwDirection);
+
     *ppEnumFormatEtc = NULL;
     HRESULT hr = E_NOTIMPL;  
 
@@ -183,14 +231,14 @@ HRESULT STDMETHODCALLTYPE CDataObject::EnumFormatEtc(DWORD dwDirection, IEnumFOR
         //for Win2k+ you can use the SHCreateStdEnumFmtEtc API call, however        
         //to support all Windows platforms we need to implement IEnumFormatEtc ourselves.   
 
-        FORMATETC* ptcs = new (std::nothrow) FORMATETC[m_dataStorage.size()];
+        FORMATETC* ptcs = new (std::nothrow) FORMATETC[m_dsCount];
         if (ptcs == nullptr)
             return E_OUTOFMEMORY;
 
-        //for(const auto& x : m_dataStorage)
-        int i = 0;
-        for_each(m_dataStorage.begin(), m_dataStorage.end(), [ptcs, &i](const auto& x) { ptcs[i++] = *x.formatEtc; });
-        hr = SHCreateStdEnumFmtEtc(static_cast<UINT>(m_dataStorage.size()), ptcs, ppEnumFormatEtc);
+        for (UINT i = 0; i < m_dsCount; i++)
+            ptcs[i] = m_dataStorage[i].formatEtc;
+
+        hr = SHCreateStdEnumFmtEtc(m_dsCount, ptcs, ppEnumFormatEtc);
 
         delete[] ptcs;
 /*
@@ -213,114 +261,82 @@ HRESULT STDMETHODCALLTYPE CDataObject::DAdvise(FORMATETC* pFormatEtc, DWORD advf
     UNREFERENCED_PARAMETER(pAdvSink);
     UNREFERENCED_PARAMETER(pdwConnection);   
 
-    return E_NOTIMPL;
+    return  OLE_E_ADVISENOTSUPPORTED; //E_NOTIMPL
 }
 
 HRESULT STDMETHODCALLTYPE CDataObject::DUnadvise(DWORD dwConnection)
 {
     UNREFERENCED_PARAMETER(dwConnection);
-    return E_NOTIMPL;
+    return OLE_E_ADVISENOTSUPPORTED;
 }
 
 HRESULT STDMETHODCALLTYPE CDataObject::EnumDAdvise(IEnumSTATDATA** ppEnumAdvise)
 {
     UNREFERENCED_PARAMETER(ppEnumAdvise);
-    return E_NOTIMPL;
+    return OLE_E_ADVISENOTSUPPORTED;
 }
 
 //protected
 HRESULT CDataObject::InternalAddData(FORMATETC* pFormatEtc, STGMEDIUM* pMedium, BOOL fRelease)
 {
-    FORMATETC* fetc = new (std::nothrow) FORMATETC;
-    if (fetc == nullptr)
-        return E_OUTOFMEMORY;
+    if (m_dsCount >= MAX_DATASTORAGE_SIZE)
+        return E_FAIL;
 
-    STGMEDIUM* pStgMed = new (std::nothrow) STGMEDIUM;
-    if (pStgMed == nullptr)
-    {
-        delete fetc;
-        return E_OUTOFMEMORY;
-    }
-
-    ::ZeroMemory(fetc, sizeof(FORMATETC));
-    ::ZeroMemory(pStgMed, sizeof(STGMEDIUM));
-    *fetc = *pFormatEtc;
+    PDATASTORAGETYPE rgde = &m_dataStorage[m_dsCount];
+    ::CopyMemory(&rgde->formatEtc, pFormatEtc, sizeof(FORMATETC));
     if (fRelease)
     {
-        *pStgMed = *pMedium;
+        ::CopyMemory(&rgde->stgMedium, pMedium, sizeof(STGMEDIUM));
     }
     else
     {
-        CopyMedium(pStgMed, pMedium, pFormatEtc);
+        ::ZeroMemory(&rgde->stgMedium, sizeof(STGMEDIUM));
+        CopyStgMedium(&rgde->stgMedium, pMedium);
     }
-    DATASTORAGETYPE dataEntry = { fetc, pStgMed };
-    m_dataStorage.push_back(dataEntry);
+    m_dsCount++;
 
     return S_OK;
 }
 
-int CDataObject::LookupFormatEtc(FORMATETC* pFormatEtc)
+HRESULT CDataObject::FindFormatEtc(FORMATETC* pFormatEtc, PDATASTORAGETYPE* ppde, BOOL bAdd)
 {
+    *ppde = nullptr;
+
+    //compare two DVTARGETDEVICE structure is hard, so we don't even try
+    if (pFormatEtc->ptd != nullptr)
+        return DV_E_DVTARGETDEVICE;
+
     // check each of ourformats in turn to see if one matches
-    for(int i = 0; i < static_cast<int>(m_dataStorage.size()); i++)
+    for(UINT i = 0; i < m_dsCount; i++)
     {        
-        if( (m_dataStorage[i].formatEtc->tymed & pFormatEtc->tymed)
-            && (m_dataStorage[i].formatEtc->cfFormat == pFormatEtc->cfFormat)
-            &&  (m_dataStorage[i].formatEtc->dwAspect == pFormatEtc->dwAspect) )
-        {            
-            //return index of stored format            
-            return i;        
+        if((m_dataStorage[i].formatEtc.cfFormat == pFormatEtc->cfFormat)
+            && (m_dataStorage[i].formatEtc.dwAspect == pFormatEtc->dwAspect)
+            && (m_dataStorage[i].formatEtc.lindex == pFormatEtc->lindex))
+        {      
+            if (bAdd || (m_dataStorage[i].formatEtc.tymed & pFormatEtc->tymed))
+            {
+                *ppde = &m_dataStorage[i];
+                return S_OK;
+            }
+            else
+            {
+                return DV_E_TYMED;
+            }
         }    
     }
 
-    // error, format notfound    
-    return -1;
-}
+    if (!bAdd)
+        return DV_E_FORMATETC;
 
-HRESULT CDataObject::CopyMedium(STGMEDIUM* pMedDest, STGMEDIUM* pMedSrc, FORMATETC* pFmtSrc)
-{
-    if ((pMedDest == nullptr) || (pMedSrc == nullptr) || (pFmtSrc == nullptr)) 
-    { 
-        return E_INVALIDARG; 
-    }    
+    if (m_dsCount >= MAX_DATASTORAGE_SIZE)
+        return E_OUTOFMEMORY;
 
-    switch (pMedSrc->tymed) 
-    { 
-    case TYMED_HGLOBAL:        
-        pMedDest->hGlobal = (HGLOBAL)OleDuplicateData(pMedSrc->hGlobal, pFmtSrc->cfFormat, NULL);        
-        break;    
-    case TYMED_GDI:        
-        pMedDest->hBitmap = (HBITMAP)OleDuplicateData(pMedSrc->hBitmap, pFmtSrc->cfFormat, NULL);        
-        break;    
-    case TYMED_MFPICT:        
-        pMedDest->hMetaFilePict = (HMETAFILEPICT)OleDuplicateData(pMedSrc->hMetaFilePict, pFmtSrc->cfFormat, NULL);       
-        break;    
-    case TYMED_ENHMF:        
-        pMedDest->hEnhMetaFile = (HENHMETAFILE)OleDuplicateData(pMedSrc->hEnhMetaFile, pFmtSrc->cfFormat, NULL);        
-        break;    
-    case TYMED_FILE:        
-        pMedSrc->lpszFileName = (LPOLESTR)OleDuplicateData(pMedSrc->lpszFileName, pFmtSrc->cfFormat, NULL);        
-        break;   
-    case TYMED_ISTREAM:        
-        pMedDest->pstm = pMedSrc->pstm;        
-        pMedSrc->pstm->AddRef();        
-        break;    
-    case TYMED_ISTORAGE:        
-        pMedDest->pstg = pMedSrc->pstg;        
-        pMedSrc->pstg->AddRef();       
-        break;    
-    case TYMED_NULL:    
-    default:        
-        break; 
-    }    
-    pMedDest->tymed = pMedSrc->tymed;   
-    pMedDest->pUnkForRelease = nullptr;    
-    if (pMedSrc->pUnkForRelease != nullptr)
-    { 
-        pMedDest->pUnkForRelease = pMedSrc->pUnkForRelease;        
-        pMedSrc->pUnkForRelease->AddRef(); 
-    }    
-    
+    PDATASTORAGETYPE rgde = &m_dataStorage[m_dsCount];
+    rgde->formatEtc = *pFormatEtc;
+    ::ZeroMemory(&rgde->stgMedium, sizeof(STGMEDIUM));
+    *ppde = rgde;
+    m_dsCount++;
+
     return S_OK;
 }
 
@@ -346,6 +362,54 @@ HRESULT CDataObject::SetBlob(CLIPFORMAT cf, const void* pvBlob, UINT cbBlob)
         }   
     }    
     return hr;
+}
+
+HRESULT CDataObject::AddRefStgMedium(STGMEDIUM* pstgmIn, STGMEDIUM* pstgmOut, BOOL fCopyIn)
+{
+    HRESULT hres = S_OK;
+    STGMEDIUM stgmOut = *pstgmIn;
+
+    if (pstgmIn->pUnkForRelease == NULL && !(pstgmIn->tymed & (TYMED_ISTREAM | TYMED_ISTORAGE))) 
+    {
+        if (fCopyIn) 
+        {
+            /* Object needs to be cloned */
+            if (pstgmIn->tymed == TYMED_HGLOBAL) 
+            {
+                stgmOut.hGlobal = GlobalClone(pstgmIn->hGlobal);
+                if (!stgmOut.hGlobal) 
+                {
+                    hres = E_OUTOFMEMORY;
+                }
+            }
+            else 
+            {
+                hres = DV_E_TYMED;      /* Don't know how to clone GDI objects */
+            }
+        }
+        else 
+        {
+            stgmOut.pUnkForRelease = static_cast<IDataObject*>(this);
+        }
+    }
+
+    if (SUCCEEDED(hres)) {
+        switch (stgmOut.tymed) {
+        case TYMED_ISTREAM:
+            stgmOut.pstm->AddRef();
+            break;
+        case TYMED_ISTORAGE:
+            stgmOut.pstg->AddRef();
+            break;
+        }
+        if (stgmOut.pUnkForRelease) {
+            stgmOut.pUnkForRelease->AddRef();
+        }
+
+        *pstgmOut = stgmOut;
+    }
+
+    return hres;
 }
 
 HRESULT CreateDataObject(FORMATETC* fmtetc, STGMEDIUM* stgmeds, UINT count, IDataObject** ppDataObject) 

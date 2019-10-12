@@ -11,27 +11,8 @@
 #include "PrivateMessage.h"
 #include "ShellWrapper.h"
 #include "ExplorerWindow.h"
+#include "AppConfig.h"
 
-
-//global options
-BOOL g_bHideRapidAccess = TRUE; //隐藏快速访问节点
-BOOL g_bAddUpButton = TRUE; //给浏览栏增加一个UP按钮（win7和win8需要，win10已经恢复了UP按钮）
-BOOL g_bFixFolderScroll = FALSE; //only for win 7
-BOOL g_bFolderAutoNavigate = TRUE;
-/*vista只有的版本中，explorer的树控件增加了一种自动隐藏节点+/-标记的特性，当explorer
-失去焦点时，这些三角形符号会慢慢消失 */
-BOOL g_bNoFadeInOutExpand = FALSE; 
-BOOL g_bTreeViewAutoScroll = FALSE;
-BOOL g_bTreeViewSimpleMode = FALSE;
-int g_nTreeViewIndent = 0;
-int g_nUpButtonIconSize = 24;
-BOOL g_bForceRefreshWin7 = TRUE;
-BOOL g_bShowFreespaceInStatusBar = TRUE;
-BOOL g_bNoWindowResizing = FALSE;
-
-extern BOOL g_bUsingLargeButton;
-extern int g_nSmallIconSize;
-extern int g_nLargeIconSize;
 
 CExplorerWindow * CExplorerWindow::m_pThisExplorer = nullptr;
 __declspec(thread) HHOOK CExplorerWindow::s_Hook; // one hook per thread

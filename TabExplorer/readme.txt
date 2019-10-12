@@ -276,6 +276,76 @@ OK，现在编译运行一下是否会弹出预期的消息对话框。
 
 
 
+#if defined _M_IX86
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_IA64
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='ia64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_X64
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#else
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#endif
+#include <CommCtrl.h>
+
+
+In order to target Windows 8.1 or Windows 10, you need to include the app manifest in the source file. The following example shows an app manifest file.
+
+<exe>.manifest
+
+文件内容: 
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3">
+    <assemblyIdentity 
+        type="win32" 
+        name=SXS_ASSEMBLY_NAME
+        version=SXS_ASSEMBLY_VERSION
+        processorArchitecture=SXS_PROCESSOR_ARCHITECTURE
+    />
+    <description> my exe </description>
+    <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+        <security>
+            <requestedPrivileges>
+                <requestedExecutionLevel
+                    level="asInvoker"
+                    uiAccess="false"
+                />   
+            </requestedPrivileges>
+        </security>
+    </trustInfo>
+    <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"> 
+        <application> 
+            <!-- Windows 10 --> 
+            <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/>
+            <!-- Windows 8.1 -->
+            <supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/>
+            <!-- Windows Vista -->
+            <supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}"/> 
+            <!-- Windows 7 -->
+            <supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/>
+            <!-- Windows 8 -->
+            <supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/>
+        </application> 
+    </compatibility>
+</assembly>
+
+
+Next, add the following to your sources:
+syntax
+
+SXS_MANIFEST_RESOURCE_ID=1
+SXS_MANIFEST=foo.manifest
+SXS_ASSEMBLY_NAME=Microsoft.Windows.Foo
+SXS_ASSEMBLY_VERSION=1.0    
+SXS_ASSEMBLY_LANGUAGE_INDEPENDENT=1
+SXS_MANIFEST_IN_RESOURCES=1
+
+Manifesting the .exe for Windows 8.1 or Windows 10 will not have any impact when run on previous operating systems. You can also add this to your .rc file if you already have it defined.
+
+Adding the trustInfo isn’t essential, but it is highly recommended. This will allow your .exe to always get the correct version, whether the operating system is Windows 10, Windows 8.1, or Windows 8.
+
+
+
+
 
 
 
