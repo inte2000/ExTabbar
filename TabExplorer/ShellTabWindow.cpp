@@ -1,7 +1,6 @@
 // ShellTabWindow.cpp : Implementation of CShellTabWindow
 
 #include "pch.h"
-#include "framework.h"
 #include "SystemFunctions.h"
 #include "DebugLog.h"
 #include "ShellTabWindow.h"
@@ -116,8 +115,8 @@ void CShellTabWindow::ReclameTabSpace()
 
 void CShellTabWindow::UpdateTabSizeAndPosition(RECT& WndRect)
 {
-    ATLTRACE(_T("CShellTabWindow::UpdateTabSizeAndPosition(WndRect [left = %d, top = %d, right = %d, bottom = %d])\n"),
-        WndRect.left, WndRect.top, WndRect.right, WndRect.bottom);
+    //ATLTRACE(_T("CShellTabWindow::UpdateTabSizeAndPosition(WndRect [left = %d, top = %d, right = %d, bottom = %d])\n"),
+    //    WndRect.left, WndRect.top, WndRect.right, WndRect.bottom);
     
     ATLASSERT(m_pExplorerWnd != nullptr);
 
@@ -130,7 +129,7 @@ void CShellTabWindow::UpdateTabSizeAndPosition(RECT& WndRect)
 void CShellTabWindow::OnWindowPosChanging(WINDOWPOS FAR* lpwndpos)
 {
 //    LogTrace(_T("CShellTabWindow::OnWindowPosChanging(x = %d, y = %d, cx = %d, cy = %d),m_bManaging = %d"), lpwndpos->x, lpwndpos->y, lpwndpos->cx, lpwndpos->cy, m_bManaging);
-    ATLTRACE(_T("CShellTabWindow::OnWindowPosChanging(x = %d, y = %d, cx = %d, cy = %d),m_bManaging = %d"), lpwndpos->x, lpwndpos->y, lpwndpos->cx, lpwndpos->cy, m_bManaging);
+    ATLTRACE(_T("CShellTabWindow::OnWindowPosChanging(x = %d, y = %d, cx = %d, cy = %d),m_bManaging = %d\n"), lpwndpos->x, lpwndpos->y, lpwndpos->cx, lpwndpos->cy, m_bManaging);
 
     bool bSysCall = true;
     if (m_bManaging)

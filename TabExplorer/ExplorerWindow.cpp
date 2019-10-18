@@ -15,9 +15,8 @@
 
 
 CExplorerWindow * CExplorerWindow::m_pThisExplorer = nullptr;
-__declspec(thread) HHOOK CExplorerWindow::s_Hook; // one hook per thread
 
-LRESULT CALLBACK CExplorerWindow::HookExplorer( int nCode, WPARAM wParam, LPARAM lParam )
+LRESULT CALLBACK CExplorerWindow::HookExplorerProc( int nCode, WPARAM wParam, LPARAM lParam )
 {
 	if (nCode==HCBT_CREATEWND)
 	{
@@ -28,9 +27,9 @@ LRESULT CALLBACK CExplorerWindow::HookExplorer( int nCode, WPARAM wParam, LPARAM
             LogInfo(_T("ExplorerWindow treeview windows create hooked!"));
             ATLASSERT(m_pThisExplorer != nullptr);
             m_pThisExplorer->SubclassLeftTree(hWnd);
-			UnhookWindowsHookEx(s_Hook);
-			s_Hook=NULL;
-			return 0;
+			//UnhookWindowsHookEx(s_Hook);
+			//s_Hook=NULL;
+			//return 0;
 		}
 	}
 	return CallNextHookEx(NULL,nCode,wParam,lParam);
@@ -70,6 +69,7 @@ CExplorerWindow::CExplorerWindow()
     m_ExplorerSubclassId = 0x20190803;
     m_pThisExplorer = this;
     m_iTabbarHeight = g_bUsingLargeButton ? g_nLargeIconSize + 8 : g_nSmallIconSize + 8;
+    m_Hook = NULL;
 }
 
 
@@ -98,7 +98,7 @@ BOOL CExplorerWindow::OnExplorerAttach(CComPtr<IWebBrowser2>& spWebBrowser2, CCo
         return FALSE;
     }
 
-    if (!HookExplorer())
+    if (!InstallExplorerHook())
     {
         LogError(_T("ExplorerWindow hook explorer faild!"));
         return FALSE;
@@ -164,7 +164,7 @@ void CExplorerWindow::OnExplorerDetach()
 {
     LogTrace(_T("ExplorerWindow OnExplorerAttach() invoked!"));
 
-    UnhookExplorer();
+    UninstallExplorerHook(); 
     m_TravelBand.Unintialize();
     m_LeftTree.Unintialize();
     m_Statusbar.Unintialize();
@@ -262,26 +262,26 @@ BOOL CExplorerWindow::SubclassLeftTree(HWND hTreeView)
     return m_LeftTree.Initialize(m_spShellBrowser, hTreeView);
 }
 
-BOOL CExplorerWindow::HookExplorer()
+BOOL CExplorerWindow::InstallExplorerHook()
 {
     // hook
-    if (!s_Hook)
+    if (m_Hook == NULL)
     {
-        LogTrace(_T("ExplorerWindow HookExplorer() set explorer WH_CBT hook!"));
-        s_Hook = SetWindowsHookEx(WH_CBT, HookExplorer, NULL, GetCurrentThreadId());
+        LogTrace(_T("ExplorerWindow InstallExplorerHook() set explorer WH_CBT hook!"));
+        m_Hook = ::SetWindowsHookEx(WH_CBT, HookExplorerProc, NULL, GetCurrentThreadId());
     }
 
-    return (s_Hook != NULL);
+    return (m_Hook != NULL);
 }
 
-void CExplorerWindow::UnhookExplorer()
+void CExplorerWindow::UninstallExplorerHook()
 {
     // unhook
-    if (s_Hook)
+    if (m_Hook != NULL)
     {
-        LogTrace(_T("ExplorerWindow UnhookExplorer() remove explorer WH_CBT hook!"));
-        UnhookWindowsHookEx(s_Hook);
-        s_Hook = NULL;
+        LogTrace(_T("ExplorerWindow UninstallExplorerHook() remove explorer WH_CBT hook!"));
+        ::UnhookWindowsHookEx(m_Hook);
+        m_Hook = NULL;
     }
 }
 

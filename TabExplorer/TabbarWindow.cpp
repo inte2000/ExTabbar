@@ -26,7 +26,7 @@ struct StdToolbarItem
 
 static StdToolbarItem s_StdItems[] = 
 {
-    {L"NewTab", ID_NEW_TAB, true, 46, L"New Tab"},
+    {L"Test", ID_NEW_TAB, true, 46, L"Test "},
     {L"GoUp", ID_GOUP, true, 46, L"Up One Level"},
     {L"Settings", ID_SETTINGS, true, 210, L"Toolbar.Settings"}
 };
@@ -292,7 +292,7 @@ void CTabbarWindow::SaveRebarBreakState()
             if (info.hwndChild == m_Toolbar.m_hWnd)
             {
                 m_bBandNewLine = (info.fStyle & RBBS_BREAK) != 0;
-                g_bBandNewLine = m_bBandNewLine;   //保存全局变量的值
+                g_bBandNewLine = m_bBandNewLine;   //
 
                 break;
             }
@@ -305,7 +305,7 @@ void CTabbarWindow::InitializeFirstTabOnStartup(const TString& strUrl)
     if (!m_bInitFirstTabs)
         return;
 
-    if (!AddNewTab(strUrl))
+    if (!m_TabCtrl.AddNewTab(strUrl))
     {
     }
 
@@ -322,43 +322,6 @@ void CTabbarWindow::MovePosition(const RECT& TabsRect)
     RedrawWindow();
 }
 
-BOOL CTabbarWindow::AddNewTab(const TString& path)
-{
-    CShellTabItem* psti = new CShellTabItem();
-    if (psti != nullptr)
-    {
-        CIDLEx cidl;
-        CIDListData IdlData;
-        if (!GetCIDLDataByParseName(path, cidl, IdlData))
-        {
-        }
-
-        int nInsertItem;
-        if (g_bNewTabInsertBegin)
-            nInsertItem = 0;
-        else
-            nInsertItem = m_TabCtrl.GetItemCount();
-
-        psti->NavigatedTo(IdlData, cidl, path);
-        int iconIdx = GetShellObjectIcon(cidl);
-
-        bool bSelected = g_bSwitchNewTab ? true : false;
-        int index = m_TabCtrl.InternalInsertItem(nInsertItem, psti->GetTitle().c_str(), iconIdx, psti->GetTooltip().c_str(), (ULONG_PTR)psti, bSelected);
-
-        if (index < 0)
-        {
-            delete psti;
-            return FALSE;
-        }
-
-        return TRUE;
-        //m_bNavigatedByTab = true;
-        //m_ShellBrowser.Navigate(cidl);
-    }
-
-    return FALSE;
-}
-
 BOOL CTabbarWindow::NavigateCurrentTab(bool bBack)
 {
     int nItem = m_TabCtrl.GetCurSel();
@@ -370,7 +333,7 @@ BOOL CTabbarWindow::NavigateCurrentTab(bool bBack)
 
     LogTrace(_T("CTabbarWindow::NavigateCurrentTab(), back = %d"), bBack ? 1 : 0);
 
-    return FALSE; //返回TRUE可阻止切换目录
+    return FALSE; //
 }
 
 BOOL CTabbarWindow::BeforeNavigate(CIDLEx& target, bool bAutoNav)
@@ -388,7 +351,7 @@ BOOL CTabbarWindow::BeforeNavigate(CIDLEx& target, bool bAutoNav)
     }
 
     m_curBrowserObj.GetCopyOf(&target, parseName);
-    return FALSE; //返回TRUE，阻止切换目录
+    return FALSE; //
 }
 
 void CTabbarWindow::OnBeforeNavigate(const TString& strUrl)
@@ -574,7 +537,7 @@ LRESULT CTabbarWindow::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
     RECT rcToolbar = { 0, vSpace , rcLastBtn.right, rcLastBtn.bottom + vSpace };
     m_Toolbar.MoveWindow(&rcToolbar, TRUE);
 
-    RECT rcTabctrl = { rcLastBtn.right + 2, 0, nWidth, nHeight }; //流出分隔线的空间
+    RECT rcTabctrl = { rcLastBtn.right + 2, 0, nWidth, nHeight }; //
     m_TabCtrl.MoveWindow(&rcTabctrl, TRUE);
     
     bHandled = TRUE;
@@ -859,22 +822,8 @@ LRESULT CTabbarWindow::OnSettings(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL
 
 LRESULT CTabbarWindow::OnNewTab(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
-    TString path = GetMyComputerPath();
-    
-    if (!AddNewTab(path))
-    {
-        ::MessageBox(m_hWnd, _T("add new tab fail!"), _T("TabExplorer"), MB_OK);
-    }
 
     return TRUE;
-}
-
-LRESULT CTabbarWindow::OnTabctrlNewTabButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
-{
-    NMCTCITEM* pNtItem = reinterpret_cast<NMCTCITEM*>(pnmh);
-    //if(pNtItem->pt.x, pNtItem->pt.y)
-
-    return 0;
 }
 
 LRESULT CTabbarWindow::OnTabctrlSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)

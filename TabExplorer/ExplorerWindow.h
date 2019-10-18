@@ -32,8 +32,8 @@ public:
 protected:
     BOOL SubclassStatusBar();
     BOOL SubclassLeftTree(HWND hTreeView);
-    BOOL HookExplorer();
-    void UnhookExplorer();
+    BOOL InstallExplorerHook();
+    void UninstallExplorerHook();
 
     //void OnSize(DWORD_PTR dwSizeType, DWORD nWidth, DWORD nHeight);
     BOOL OnBrowseObject(LPCITEMIDLIST pidl, UINT wFlags);
@@ -55,10 +55,10 @@ protected:
 	CComPtr<IShellBrowser> m_spShellBrowser;
     CTravelLogMgmt m_TravelLogMgmt;
 
+    HHOOK m_Hook;
 public:
     static CExplorerWindow *m_pThisExplorer;
-	static __declspec(thread) HHOOK s_Hook;
-	static LRESULT CALLBACK HookExplorer( int code, WPARAM wParam, LPARAM lParam );
+	static LRESULT CALLBACK HookExplorerProc( int code, WPARAM wParam, LPARAM lParam );
     static LRESULT CALLBACK ExplorerSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 };
 

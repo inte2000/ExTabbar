@@ -251,6 +251,7 @@
     <ClInclude Include="..\common\ShellGuids.h" />
     <ClInclude Include="..\common\ShellTabItem.h" />
     <ClInclude Include="..\common\ShellWrapper.h" />
+    <ClInclude Include="..\common\SyncObject.h" />
     <ClInclude Include="..\common\SystemFolders.h" />
     <ClInclude Include="..\common\SystemFunctions.h" />
     <ClInclude Include="..\common\TravelLogMgmt.h" />
@@ -302,6 +303,7 @@
     <ClCompile Include="..\common\TravelLogMgmt.cpp" />
     <ClCompile Include="..\ui\ColorHelper.cpp" />
     <ClCompile Include="AddressBar.cpp" />
+    <ClCompile Include="AppConfig.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>

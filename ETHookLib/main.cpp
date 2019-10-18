@@ -22,6 +22,10 @@
 #include "CComPtr.h"
 #include "MinHook.h"
 
+const GUID IID_IExplorerFactory = { 0xA86304A7, 0x17CA, 0x4595, {0x99, 0xAB, 0x52, 0x30, 0x43, 0xA9, 0xC4, 0xAC} };
+const GUID CLSID_ExplorerFactoryServer = { 0x93A56381, 0xE0CD, 0x485A, {0xB6, 0x0E, 0x67, 0x81, 0x9E, 0x12, 0xF8, 0x1B} };
+const GUID CLSID_ExplorerFactory = { 0x78428474, 0x473B, 0x4660, {0x90, 0x68, 0xF2, 0xAA, 0x7F, 0x6C, 0xB2, 0x27} };
+
 // Hook declaration macro
 #define DECLARE_HOOK(id, ret, name, params)                                         \
     typedef ret (WINAPI *__TYPE__##name)params; /* Function pointer type        */  \
@@ -43,8 +47,15 @@ MIDL_INTERFACE("0B907F92-1B63-40C6-AA54-0D3117F03578") IListControlHost     : pu
 MIDL_INTERFACE("66A9CB08-4802-11d2-A561-00A0C92DBFE8") ITravelLog           : public IUnknown {};
 MIDL_INTERFACE("3050F679-98B5-11CF-BB82-00AA00BDCE0B") ITravelLogEx         : public IUnknown {};
 MIDL_INTERFACE("7EBFDD87-AD18-11d3-A4C5-00C04F72D6B8") ITravelLogEntry      : public IUnknown {};
-MIDL_INTERFACE("489E9453-869B-4BCC-A1C7-48B5285FD9D8") ICommonExplorerHost  : public IUnknown {};
-MIDL_INTERFACE("A86304A7-17CA-4595-99AB-523043A9C4AC") IExplorerFactory 	: public IUnknown {};
+//MIDL_INTERFACE("489E9453-869B-4BCC-A1C7-48B5285FD9D8") ICommonExplorerHost  : public IUnknown {};
+
+MIDL_INTERFACE("93A56381-E0CD-485A-B60E-67819E12F81B") ICommonExplorerHost  : public IUnknown{};
+
+MIDL_INTERFACE("A86304A7-17CA-4595-99AB-523043A9C4AC") IExplorerFactory 	: public IUnknown
+{
+    public:
+        virtual HRESULT ShowWindow(PCIDLIST_ABSOLUTE, int, DWORD, DWORD, POINT) = 0;
+};
 MIDL_INTERFACE("E93D4057-B9A2-42A5-8AF8-E5BBF177D365") IShellNavigationBand : public IUnknown {};
 MIDL_INTERFACE("596742A5-1393-4E13-8765-AE1DF71ACAFB") CBreadcrumbBar {};
 MIDL_INTERFACE("93A56381-E0CD-485A-B60E-67819E12F81B") CExplorerFactoryServer {};
@@ -174,6 +185,7 @@ int Initialize(CallbackStruct* cb) {
 
     // Create an instance of CExplorerFactoryServer so we can hook it.
     // The interface in question is different on Vista and 7.
+#if 0   
     CComPtr<IUnknown> punk;
     if(punk.Create(__uuidof(CExplorerFactoryServer), CLSCTX_INPROC_SERVER)) {
         CComPtr<ICommonExplorerHost> pceh;
@@ -185,6 +197,17 @@ int Initialize(CallbackStruct* cb) {
             CREATE_COM_HOOK(pef, 3, ShowWindow_Vista)
         }
     }
+#endif
+
+#if 0
+    //win 10 ?\A8\A6\A8\AE?\A6\CC?\A1\A4?\A1\A4\A1\A7
+    CComPtr<IUnknown> punk;
+    if (punk.Create(CLSID_ExplorerFactoryServer, CLSCTX_INPROC_SERVER))
+    {
+        CREATE_COM_HOOK(punk, 3, ShowWindow_Vista)
+    }
+#endif    
+
     return MH_OK;
 }
 
@@ -392,9 +415,11 @@ HRESULT WINAPI DetourSetNavigationState(IShellNavigationBand* _this, unsigned lo
 HRESULT WINAPI DetourShowWindow_7(ICommonExplorerHost* _this, PCIDLIST_ABSOLUTE pidl, DWORD flags, POINT pt, DWORD mystery) {
     return callbacks.fpNewWindow(pidl) ? S_OK : fpShowWindow_7(_this, pidl, flags, pt, mystery);
 }
+
 HRESULT WINAPI DetourShowWindow_Vista(IExplorerFactory* _this, PCIDLIST_ABSOLUTE pidl, DWORD flags, DWORD mystery1, DWORD mystery2, POINT pt) {
     return callbacks.fpNewWindow(pidl) ? S_OK : fpShowWindow_Vista(_this, pidl, flags, mystery1, mystery2, pt);
 }
+
 
 // The SHOpenFolderAndSelectItems function opens an Explorer window and waits for a New Window
 // notification from IShellWindows.  The purpose of this hook is to wake up those threads by

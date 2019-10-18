@@ -118,8 +118,8 @@ void CAddressBar::ReclameTabSpace()
 
 void CAddressBar::UpdateTabSizeAndPosition(RECT& WndRect)
 {
-    ATLTRACE(_T("CAddressBar::UpdateTabSizeAndPosition(WndRect [left = %d, top = %d, right = %d, bottom = %d])\n"),
-        WndRect.left, WndRect.top, WndRect.right, WndRect.bottom);
+    //ATLTRACE(_T("CAddressBar::UpdateTabSizeAndPosition(WndRect [left = %d, top = %d, right = %d, bottom = %d])\n"),
+    //    WndRect.left, WndRect.top, WndRect.right, WndRect.bottom);
     
     ATLASSERT(m_pExplorerWnd != nullptr);
     
@@ -135,7 +135,7 @@ void CAddressBar::UpdateTabSizeAndPosition(RECT& WndRect)
 
 void CAddressBar::OnWindowPosChanging(WINDOWPOS FAR* lpwndpos)
 {
-    ATLTRACE(_T("CAddressBar::OnWindowPosChanging(x = %d, y = %d, cx = %d, cy = %d),m_bManaging = %d"), lpwndpos->x, lpwndpos->y, lpwndpos->cx, lpwndpos->cy, m_bManaging);
+    //ATLTRACE(_T("CAddressBar::OnWindowPosChanging(x = %d, y = %d, cx = %d, cy = %d),m_bManaging = %d"), lpwndpos->x, lpwndpos->y, lpwndpos->cx, lpwndpos->cy, m_bManaging);
 
     bool bSysCall = true;
     if (m_bManaging)

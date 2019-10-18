@@ -7,7 +7,9 @@
 #include "ShellBrowserEx.h"
 #include "ExplorerWindow.h" //
 #include "WspFunctions.h"
+#include "ShellFunctions.h"
 #include "TeTabctrl.h"
+#include "AppConfig.h"
 
 bool CTeTabCtrl::PrepareDataObject(int nItem, const POINT& pt, IDataObject** ppDataObject)
 {
@@ -121,6 +123,41 @@ void CTeTabCtrl::OnTargetDragLeave()
     ATLTRACE(_T("CTeTabCtrl::OnTargetDragLeave(m_pDataObject=%p) invoked!\n"), m_pDataObject);
 }
 
+BOOL CTeTabCtrl::AddNewTab(const TString& path)
+{
+    CShellTabItem* psti = new CShellTabItem();
+    if (psti != nullptr)
+    {
+        CIDLEx cidl;
+        CIDListData IdlData;
+        if (!GetCIDLDataByParseName(path, cidl, IdlData))
+        {
+        }
+
+        int nInsertItem;
+        if (g_bNewTabInsertBegin)
+            nInsertItem = 0;
+        else
+            nInsertItem = GetItemCount();
+
+        psti->NavigatedTo(IdlData, cidl, path);
+        int iconIdx = GetShellObjectIcon(cidl);
+
+        bool bSelected = g_bSwitchNewTab ? true : false;
+        int index = InternalInsertItem(nInsertItem, psti->GetTitle().c_str(), iconIdx, psti->GetTooltip().c_str(), (ULONG_PTR)psti, bSelected);
+
+        if (index < 0)
+        {
+            delete psti;
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 LRESULT CTeTabCtrl::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     LogTrace(_T("CTeTabCtrl::OnCreate() invoked"));
@@ -203,6 +240,21 @@ LRESULT CTeTabCtrl::OnBeginItemDrag(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 
     return 1;
 }
+
+LRESULT CTeTabCtrl::OnNewTabButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+{
+    NMCTCITEM* pNtItem = reinterpret_cast<NMCTCITEM*>(pnmh);
+    //if(pNtItem->pt.x, pNtItem->pt.y)
+    TString path = GetMyComputerPath();
+
+    if (!AddNewTab(path))
+    {
+        ::MessageBox(m_hWnd, _T("add new tab fail!"), _T("TabExplorer"), MB_OK);
+    }
+
+    return 0;
+}
+
 
 LRESULT CTeTabCtrl::OnCloseButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {

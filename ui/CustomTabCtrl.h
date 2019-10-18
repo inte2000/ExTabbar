@@ -1753,11 +1753,10 @@ public:
 
 	LRESULT OnLButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 	{
-		if(m_hWnd == ::GetCapture())
+        POINT ptCursor = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+        if(m_hWnd == ::GetCapture())
 		{
 			T* pT = static_cast<T*>(this);
-
-			POINT ptCursor = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
 
 			if(ectcDraggingItem == (m_dwState & ectcDraggingItem))
 			{

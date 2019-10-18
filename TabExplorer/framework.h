@@ -32,6 +32,7 @@ using namespace ATL;
 #include <atlmisc.h>
 #include <atlcrack.h>
 #include <atltheme.h>
+#include <atlsplit.h>
 
 
 #include <shobjidl.h>

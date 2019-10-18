@@ -35,6 +35,7 @@ public:
         m_pExplorerWnd = pExplorerWnd;
     }
 
+    BOOL AddNewTab(const TString& path);
     bool PrepareDataObject(int nItem, const POINT& pt, IDataObject** ppDataObject);
 
     bool IsDragAccepted(IDataObject* pDataObj);
@@ -55,6 +56,7 @@ protected:
         CHAIN_MSG_MAP(CDotNetTabCtrlImpl<CTeTabCtrl>)
         //REFLECTED_NOTIFY_CODE_HANDLER(CTCN_SELCHANGE, OnSelChange)
         REFLECTED_NOTIFY_CODE_HANDLER(CTCN_BEGINITEMDRAG, OnBeginItemDrag)
+        REFLECTED_NOTIFY_CODE_HANDLER(CTCN_NEWTAB, OnNewTabButton)
         REFLECTED_NOTIFY_CODE_HANDLER(CTCN_CLOSE, OnCloseButton)
         DEFAULT_REFLECTION_HANDLER()
     END_MSG_MAP()
@@ -63,6 +65,7 @@ protected:
     LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
     //LRESULT OnSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
     LRESULT OnBeginItemDrag(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+    LRESULT OnNewTabButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
     LRESULT OnCloseButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
     BOOL InternalRemoveItem(int nItem);

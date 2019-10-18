@@ -372,8 +372,8 @@ public:
 			}
 			else
 			{
-				rc.top = rc.bottom - 2;
-				dc.FillSolidRect(&rc, lpNMCustomDraw->clrBtnFace);
+				//rc.top = rc.bottom - 2;
+				//dc.FillSolidRect(&rc, lpNMCustomDraw->clrBtnFace);
 
 				CPen penHilight;
 				penHilight.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnHighlight);
@@ -390,10 +390,12 @@ public:
 
 	void DrawItem_InitBounds(DWORD dwStyle, RECT rcItem, RECT& rcTab, RECT& rcText, int& nIconVerticalCenter)
 	{
+        rcTab = rcItem;
+        rcText = rcItem;
         if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
         {
-            rcTab.top += 1;
-            rcTab.bottom -= 1;
+            //rcTab.top += 1;
+            //rcTab.bottom -= 1;
             rcText.top = rcTab.top + 1 + m_nFontSizeTextTopOffset;
             rcText.bottom = rcTab.bottom;
             //nIconVerticalCenter = rcTab.top + (rc.bottom - rcTab.top) / 2;
@@ -402,8 +404,8 @@ public:
         }
 		else if(CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
 		{
-			rcTab.top += 3;
-			rcTab.bottom -= 1;
+			//rcTab.top += 3;
+			//rcTab.bottom -= 1;
 
 			rcText.top = rcTab.top+1 + m_nFontSizeTextTopOffset;
 			rcText.bottom = rcItem.bottom;
@@ -413,8 +415,8 @@ public:
 		}
 		else
 		{
-			rcTab.top += 1;
-			rcTab.bottom -= 1;
+			//rcTab.top += 1;
+			//rcTab.bottom -= 1;
 
 			rcText.top = rcItem.top+1 + m_nFontSizeTextTopOffset;
 			rcText.bottom = rcItem.bottom;
@@ -431,7 +433,7 @@ public:
 
 		WTL::CDCHandle dc(lpNMCustomDraw->nmcd.hdc);
 
-		rcTab.right--;
+		//rcTab.right--;
 
         WTL::CPen penText, penHilight;
         penText.CreatePen(PS_SOLID, 1, lpNMCustomDraw->clrBtnText);
@@ -930,8 +932,7 @@ public:
 		RECT &rcItem = lpNMCustomDraw->nmcd.rc;
 
 		DWORD dwStyle = pT->GetStyle();
-		RECT rcTab = rcItem;
-		RECT rcText = rcItem;
+		RECT rcTab, rcText;
 		int nIconVerticalCenter = 0;
 
 		pT->DrawItem_InitBounds(dwStyle, rcItem, rcTab, rcText, nIconVerticalCenter);
@@ -1173,6 +1174,8 @@ public:
 
         if (CTCS_BUTTONS == (dwStyle & CTCS_BUTTONS))
         {
+            m_rcNewTabButton.top = (m_rcNewTabButton.bottom + m_rcNewTabButton.top - nButtonSizeY) / 2;
+            m_rcNewTabButton.bottom = m_rcNewTabButton.top + nButtonSizeY;
         }
         else if (CTCS_BOTTOM == (dwStyle & CTCS_BOTTOM))
         {
@@ -1180,11 +1183,10 @@ public:
         }
         else
         {
-            m_rcNewTabButton.top += 1;
-            m_rcNewTabButton.bottom -= 2;
+            //m_rcNewTabButton.bottom -= 3;
+            m_rcNewTabButton.top = (m_rcNewTabButton.bottom + m_rcNewTabButton.top - nButtonSizeY) / 2;
+            m_rcNewTabButton.bottom = m_rcNewTabButton.top + nButtonSizeY;
         }
-        m_rcNewTabButton.top = (m_rcNewTabButton.bottom + m_rcNewTabButton.top - nButtonSizeY) / 2;
-        m_rcNewTabButton.bottom = m_rcNewTabButton.top + nButtonSizeY;
 
         if (m_tooltip.IsWindow())
         {
@@ -1208,7 +1210,7 @@ public:
 
 		LONG nTabAreaWidth = (rcTabItemArea.right - rcTabItemArea.left);
 
-		RECT rcItem = rcTabItemArea;
+        RECT rcItem = { rcTabItemArea.left, rcTabItemArea.top + 1, rcTabItemArea.right, rcTabItemArea.bottom - 1 };
 		// rcItem.top and rcItem.bottom aren't really going to change
 
 		// Recalculate tab positions and widths
@@ -1362,7 +1364,7 @@ public:
 		//HFONT hOldFont = dc.SelectFont(lpNMCustomDraw->hFontInactive);
 		HFONT hOldFont = dc.SelectFont(m_font);
 
-		RECT rcItem = rcClient;
+        RECT rcItem = { rcClient.left, rcClient.top + 1, rcClient.right, rcClient.bottom - 1 };
 		// rcItem.top and rcItem.bottom aren't really going to change
 
 		// Recalculate tab positions and widths

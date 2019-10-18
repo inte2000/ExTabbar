@@ -19,7 +19,8 @@ void HookResult(int hookId, int retcode)
 bool OnNewWindow(LPCITEMIDLIST pIDL)
 {
     LogTrace(_T("OnNewWindow invoked by ETHookLib!"));
-    return true;
+    return false;
+    //return true;//return true stop new window created
 }
 
 BOOL OnShellExtLoaded(HMODULE hShlExtMod)

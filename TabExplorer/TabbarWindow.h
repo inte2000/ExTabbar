@@ -53,7 +53,6 @@ public:
     void UpdateToolbar(void);
 
     void MovePosition(const RECT& TabsRect);
-    BOOL AddNewTab(const TString& path);
     BOOL NavigateCurrentTab(bool bBack);
     BOOL BeforeNavigate(CIDLEx& target, bool bAutoNav);
     void OnBeforeNavigate(const TString& strUrl);
@@ -74,7 +73,6 @@ protected:
         COMMAND_ID_HANDLER(ID_GOFORWARD, OnNavigate)
         COMMAND_ID_HANDLER(ID_EMAIL, OnEmail)
         COMMAND_RANGE_HANDLER(ID_CUT, ID_CUSTOM + 100, OnToolbarCommand)
-        NOTIFY_CODE_HANDLER(CTCN_NEWTAB, OnTabctrlNewTabButton)
         NOTIFY_CODE_HANDLER(CTCN_SELCHANGE, OnTabctrlSelChange)
         NOTIFY_CODE_HANDLER(CTCN_DELETEITEM, OnTabctrlDeleteItem)
         NOTIFY_CODE_HANDLER(NM_RCLICK, OnRClick)
@@ -99,7 +97,6 @@ protected:
     LRESULT OnSettings(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
     LRESULT OnNewTab(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 
-    LRESULT OnTabctrlNewTabButton(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
     LRESULT OnTabctrlSelChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
     LRESULT OnTabctrlDeleteItem(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
     LRESULT OnRClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);

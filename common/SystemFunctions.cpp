@@ -325,29 +325,43 @@ struct FindChildClass
     HWND hWnd;
 };
 
-static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam)
+BOOL IsWindowMatchClassName(HWND hwnd, LPCTSTR className, LPCTSTR caption)
 {
-    FindChildClass *find = (FindChildClass *)lParam;
-    TCHAR className[256];
-    ::GetClassName(hwnd, className, _countof(className));
-    //ATLTRACE(_T("EnumChildProc find class %s\n"), className);
-    if (find->wndCaption != nullptr)
+    TCHAR cla[256];
+    
+    if(::GetClassName(hwnd, cla, _countof(cla)) == 0)
     {
-        TCHAR caption[256] = { 0 };
-        ::GetWindowText(hwnd, caption, _countof(caption));
-        if ((lstrcmpi(className, find->className) == 0) && (lstrcmpi(caption, find->wndCaption) == 0))
+        return FALSE;
+    }
+
+    if (caption != nullptr)
+    {
+        TCHAR cap[256] = { 0 };
+        ::GetWindowText(hwnd, cap, _countof(cap));
+        if ((lstrcmpi(cla, className) == 0) && (lstrcmpi(cap, caption) == 0))
         {
-            find->hWnd = hwnd;
-            return FALSE;
+            return TRUE;
         }
     }
     else
     {
-        if (lstrcmpi(className, find->className) == 0)
+        if (lstrcmpi(cla, className) == 0)
         {
-            find->hWnd = hwnd;
-            return FALSE;
+            return TRUE;
         }
+    }
+
+    return FALSE;
+}
+
+static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam)
+{
+    FindChildClass *find = (FindChildClass *)lParam;
+
+    if (IsWindowMatchClassName(hwnd, find->className, find->wndCaption))
+    {
+        find->hWnd = hwnd;
+        return FALSE;
     }
 
     return TRUE;
@@ -435,7 +449,7 @@ HGLOBAL CopyGlobalMemoryHandle(HGLOBAL hDest, HGLOBAL hSource)
 
     return hDest;
 }
-/*
+
 HBITMAP GetWindowSnapBitmap(HWND hWnd, SIZE* size)
 {
     HDC hDC = ::GetDC(hWnd);
@@ -465,6 +479,50 @@ HBITMAP GetWindowSnapBitmap(HWND hWnd, SIZE* size)
 
     return hBitmap;
 }
+
+void DoProcessEvent(HWND hWnd)
+{
+    MSG msg = { 0 };
+
+    while (PeekMessage(&msg, hWnd, 0, 0, PM_REMOVE))
+    {
+        if (msg.message == WM_QUIT)
+            break;
+        ::TranslateMessage(&msg);
+        ::DispatchMessage(&msg);
+    }
+}
+
+BOOL BringWindowForeground(HWND hWnd)
+{
+    HWND hForeWnd = ::GetForegroundWindow();
+    DWORD dwForeID = ::GetWindowThreadProcessId(hForeWnd, NULL);
+    DWORD dwCurID = ::GetCurrentThreadId();
+
+    ::AttachThreadInput(dwCurID, dwForeID, TRUE);
+    ::ShowWindow(hWnd, SW_SHOWNORMAL);
+    ::SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    ::SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    ::SetForegroundWindow(hWnd);
+    ::AttachThreadInput(dwCurID, dwForeID, FALSE);
+
+    return TRUE;
+}
+
+/*
+保存到剪贴板：
+HRESULT OleSetClipboard(LPDATAOBJECT pDataObj);
+OleSetClipboard会给pDataObj的计数器+1，其他app可以通过剪贴板获得pDataObj对象。调用这个方法后，
+本地的pDataObj对象就可以Release了。调用OleSetClipboard后剪贴板上只有pDataObj对象的指针，可以
+调用OleFlushClipboard将数据放置到剪贴板上（调用OleFlushClipboard会将pDataObj对象的计数-1）
+
+HRESULT OleFlushClipboard();
+
+
+
+
+*/
+/*
 template<class T>
 void ClearStack(std::stack<T>& stk)
 {

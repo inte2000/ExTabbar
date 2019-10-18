@@ -53,6 +53,7 @@ BOOL IsNetworkPath(const TString& path);
 BOOL IsNamespacePath(const TString& path);
 BOOL IsDiskRootPath(const TString& path);
 
+BOOL IsWindowMatchClassName(HWND hwnd, LPCTSTR className, LPCTSTR caption = nullptr);
 HWND FindChildWndEx(HWND hwnd, LPCTSTR className, LPCTSTR caption = nullptr);
 
 HIMAGELIST GetSystemImageList(BOOL bLargeIcon);
@@ -63,3 +64,5 @@ WCHAR* WStrFromTString(WCHAR* wstrBuf, int bufChs, const TString& tstr);
 HGLOBAL CopyGlobalMemoryHandle(HGLOBAL hDest, HGLOBAL hSource);
 
 HBITMAP GetWindowSnapBitmap(HWND hWnd, SIZE* size = nullptr);
+void DoProcessEvent(HWND hWnd = NULL);
+BOOL BringWindowForeground(HWND hWnd);
