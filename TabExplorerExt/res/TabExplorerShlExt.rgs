@@ -1,0 +1,31 @@
+HKCR
+{
+    NoRemove CLSID
+    {
+        ForceRemove {9FD4B86D-2BB8-423d-ACB0-E6D1C9A7B47D} = s 'TabExplorerShlExt Class'
+        {
+            InprocServer32 = s '%MODULE%'
+            {
+                val ThreadingModel = s 'Apartment'
+            }
+        }
+    }
+    NoRemove *
+    {
+        NoRemove ShellEx
+        {
+            NoRemove ContextMenuHandlers
+            {
+                ForceRemove TabExplorerShlExt = s '{9FD4B86D-2BB8-423d-ACB0-E6D1C9A7B47D}'
+            }
+        }
+    }
+    NoRemove txtfile
+    {
+        NoRemove DefaultIcon = s '%%1'
+        NoRemove ShellEx
+        {
+            ForceRemove IconHandler = s '{9FD4B86D-2BB8-423d-ACB0-E6D1C9A7B47D}'
+        }        
+    }
+}

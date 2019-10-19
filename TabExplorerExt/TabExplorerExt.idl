@@ -1,0 +1,38 @@
+// TabExplorerExt.idl : IDL source for TabExplorerExt.dll
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (TabExplorerExt.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+	[
+		object,
+		uuid(2A0D8430-F0ED-4103-B627-666763B6F80F),
+		dual,
+		helpstring("ITabExplorerShlExt Interface"),
+		pointer_default(unique)
+	]
+	interface ITabExplorerShlExt : IDispatch
+	{
+	};
+
+[
+	uuid(A5C66843-DE62-4c71-A744-B64BE95EAABA),
+	version(1.0),
+	helpstring("TabExplorerExt 1.0 Type Library")
+]
+library TABEXPLOREREXTLib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+	[
+		uuid(9FD4B86D-2BB8-423d-ACB0-E6D1C9A7B47D),
+		helpstring("TabExplorerShlExt Class")
+	]
+	coclass TabExplorerShlExt
+	{
+		[default] interface ITabExplorerShlExt;
+	};
+};
