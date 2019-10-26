@@ -30,7 +30,7 @@ BOOL g_bTabNewButton = TRUE;
 BOOL g_bTabCloseButton = TRUE;
 BOOL g_bTabAutoHideButtons = TRUE;
 BOOL g_bForceSysListView = TRUE;
-BOOL g_bSwitchNewTab = FALSE; //立即切换到新打开的tab标签
+BOOL g_bSwitchNewTab = TRUE; //立即切换到新打开的tab标签
 BOOL g_bNewTabInsertBegin = FALSE; //新标签插入在所有标签最前面
 
 int g_nDragImageTransparent = 200;

@@ -79,9 +79,11 @@ CIDLEx CShellBrowserEx::GetItem(int idx, bool noAppend)
     //PIDLIST_ABSOLUTE ILCombine(PCIDLIST_ABSOLUTE  pidl1, PCUIDLIST_RELATIVE pidl2);
     if (!path.IsEmpty())
     {
-        CIDLEx result;
-        CIDLEx::Concat(path, rtnIdl, result);
-        return std::move(result);
+        //CIDLEx result;
+        //CIDLEx::Concat(path, rtnIdl, result);
+        //return std::move(result);
+        path.Concat(rtnIdl);
+        return std::move(path);
     }
 
     if ((pidl != nullptr) && !noAppend)
@@ -126,15 +128,15 @@ HRESULT CShellBrowserEx::GetItems(std::vector<CIDLEx *>& items, bool selectedOnl
         LPITEMIDLIST pidl = nullptr;
         while (list->Next(1, &pidl, nullptr) == S_OK)
         {
-            CIDLEx* pidlex = new CIDLEx(pidl, false);
             if (noAppend)
             {
+                CIDLEx* pidlex = new CIDLEx(pidl, false);
                 items.push_back(pidlex);
             }
             else
             {
-                CIDLEx* pidlex = new CIDLEx();
-                CIDLEx::Concat(path, CIDLEx(pidl, false), *pidlex);
+                CIDLEx* pidlex = new CIDLEx(path);
+                pidlex->Concat(pidl);
                 items.push_back(pidlex);
             }
         }
@@ -199,7 +201,7 @@ HRESULT CShellBrowserEx::SetSelectedItems(const std::vector<CIDListData*>& items
         else
         {
             LPITEMIDLIST pidl = nullptr;
-            CShellFolder desktopFolder = CDesktopFolder::GetDesktopFolder();
+            CShellFolder desktopFolder = CShellFolder::GetDesktopFolder();
             hr = desktopFolder.ParseDisplayName(strPath.c_str(), &pidl);
             if (hr == S_OK)
             {
@@ -219,7 +221,7 @@ HRESULT CShellBrowserEx::SetSelectedItems(const std::vector<CIDListData*>& items
     if (!focusSeted)
     {
         LPITEMIDLIST pidlFocus = nullptr;
-        CShellFolder desktopFolder = CDesktopFolder::GetDesktopFolder();
+        CShellFolder desktopFolder = CShellFolder::GetDesktopFolder();
         hr = desktopFolder.ParseDisplayName(focusPath.c_str(), &pidlFocus);
         if (hr == S_OK)
         {
@@ -266,12 +268,11 @@ CIDLEx CShellBrowserEx::ILAppend(LPITEMIDLIST pidl)
     CIDLEx path = GetShellPath();
     if (!path.IsEmpty())
     {
-        CIDLEx psid;
-        CIDLEx::Concat(path, ptr, psid);
-        return std::move(psid);
+        path.Concat(ptr);
+        return std::move(path);
     }
 
-    return std::move(CIDLEx());
+    return std::move(ptr);
 }
 
 inline bool CShellBrowserEx::IsFolderTreeVisible() 

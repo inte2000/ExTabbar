@@ -389,18 +389,6 @@ HIMAGELIST GetSystemImageList(BOOL bLargeIcon)
     return hSysImgList;
 }
 
-int GetShellObjectIcon(LPCITEMIDLIST pidl)
-{
-    SHFILEINFO sfi;
-    DWORD_PTR rtn = ::SHGetFileInfo((LPCTSTR)pidl, 0, &sfi, sizeof(SHFILEINFO), SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
-    if (rtn != 0)
-    {
-        return sfi.iIcon;
-    }
-
-    return -1;
-}
-
 TString TStringFromWStr(LPWSTR wstr)
 {
     TString strRtn;

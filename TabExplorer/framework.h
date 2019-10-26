@@ -29,6 +29,7 @@ using namespace ATL;
 
 #include <atlapp.h>
 #include <atlctrls.h>
+#include <atlctrlx.h>
 #include <atlmisc.h>
 #include <atlcrack.h>
 #include <atltheme.h>

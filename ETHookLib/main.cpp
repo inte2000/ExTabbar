@@ -42,6 +42,7 @@ const GUID CLSID_ExplorerFactory = { 0x78428474, 0x473B, 0x4660, {0x90, 0x68, 0x
 #define CREATE_COM_HOOK(punk, idx, name) \
     CREATE_HOOK((*(void***)((IUnknown*)(punk)))[idx], name)
 
+
 // A few undocumented interfaces and classes, of which we only really need the IIDs.
 MIDL_INTERFACE("0B907F92-1B63-40C6-AA54-0D3117F03578") IListControlHost     : public IUnknown {};
 MIDL_INTERFACE("66A9CB08-4802-11d2-A561-00A0C92DBFE8") ITravelLog           : public IUnknown {};
@@ -200,7 +201,7 @@ int Initialize(CallbackStruct* cb) {
 #endif
 
 #if 0
-    //win 10 ?\A8\A6\A8\AE?\A6\CC?\A1\A4?\A1\A4\A1\A7
+    //win 10 \BF\C9\D3õķ\BD\B7\A8
     CComPtr<IUnknown> punk;
     if (punk.Create(CLSID_ExplorerFactoryServer, CLSCTX_INPROC_SERVER))
     {
