@@ -28,4 +28,25 @@ HKCR
             ForceRemove IconHandler = s '{9FD4B86D-2BB8-423d-ACB0-E6D1C9A7B47D}'
         }        
     }
+	NoRemove Directory
+	{
+		NoRemove Background
+		{
+			NoRemove ShellEx
+			{
+				NoRemove ContextMenuHandlers
+				{
+					ForceRemove CmdHere = s '{9FD4B86D-2BB8-423d-ACB0-E6D1C9A7B47D}'
+				}
+			}
+		}
+
+		NoRemove ShellEx
+		{
+			NoRemove ContextMenuHandlers
+			{
+				ForceRemove CmdHere = s '{9FD4B86D-2BB8-423d-ACB0-E6D1C9A7B47D}'
+			}
+		}
+	}
 }

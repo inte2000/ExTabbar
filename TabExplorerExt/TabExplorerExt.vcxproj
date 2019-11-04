@@ -296,6 +296,7 @@ echo Warning : Cannot register Unicode DLL on Windows 95
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AppConfig.cpp" />
     <ClCompile Include="TabExplorerExt.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
@@ -374,9 +375,17 @@ echo Warning : Cannot register Unicode DLL on Windows 95
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AppConfig.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="TabExplorerShlExt.h" />
     <ClInclude Include="StdAfx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\cmdhere.bmp" />
+    <Image Include="res\over_8k.ico" />
+    <Image Include="res\under_4k.ico" />
+    <Image Include="res\under_8k.ico" />
+    <Image Include="res\zero_byt.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

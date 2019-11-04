@@ -4,9 +4,24 @@
 #include "resource.h"
 #include "TabExplorerExt.h"
 #include "TabExplorerShlExt.h"
+#include "AppConfig.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CTabExplorerShlExt
+
+
+CTabExplorerShlExt::CTabExplorerShlExt()
+{
+    m_hCmdHereBmp = ::LoadBitmap(_Module.GetModuleInstance(), MAKEINTRESOURCE(IDB_CMDHEREMENU));
+}
+
+CTabExplorerShlExt::~CTabExplorerShlExt()
+{
+    if (m_hCmdHereBmp != NULL)
+        ::DeleteObject(m_hCmdHereBmp);
+}
+
+
 STDMETHODIMP CTabExplorerShlExt::Initialize(LPCITEMIDLIST pidlFolder, LPDATAOBJECT pDataObj, HKEY hProgID)
 {
     FORMATETC fmt = { CF_HDROP, NULL, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
@@ -14,7 +29,7 @@ STDMETHODIMP CTabExplorerShlExt::Initialize(LPCITEMIDLIST pidlFolder, LPDATAOBJE
     HDROP     hDrop;
 
     // Look for CF_HDROP data in the data object.
-    if ( FAILED( pDataObj->GetData ( &fmt, &stg ) ))
+    if ((pDataObj == nullptr) || FAILED( pDataObj->GetData ( &fmt, &stg ) ))
     {
         // Nope! Return an "invalid argument" error back to Explorer.
         return E_INVALIDARG;
@@ -54,8 +69,15 @@ STDMETHODIMP CTabExplorerShlExt::QueryContextMenu(HMENU hmenu, UINT uMenuIndex, 
     if ( uFlags & CMF_DEFAULTONLY )
         return MAKE_HRESULT ( SEVERITY_SUCCESS, FACILITY_NULL, 0 );
 
-    InsertMenu ( hmenu, uMenuIndex, MF_BYPOSITION, uidFirstCmd, _T("TabExplorerShlExt Test Item") );
-
+    UINT cmd = uidFirstCmd;
+    CString strMenuText;
+    strMenuText.LoadString(IDS_MENUTEXT_CMDHERE);
+    
+    ::InsertMenu (hmenu, uMenuIndex, MF_BYPOSITION, cmd++, strMenuText);
+    if (m_hCmdHereBmp != NULL)
+    {
+        ::SetMenuItemBitmaps(hmenu, uMenuIndex, MF_BYPOSITION, m_hCmdHereBmp, NULL);
+    }
     return MAKE_HRESULT ( SEVERITY_SUCCESS, FACILITY_NULL, 1 );
 }
 
@@ -71,62 +93,26 @@ STDMETHODIMP CTabExplorerShlExt::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     // supplied buffer.
     if ( uFlags & GCS_HELPTEXT )
     {
-        LPCTSTR szText = _T("This is the simple shell extension's help");
+        CString strHelp;
+        strHelp.LoadString(IDS_CMDHERE_HELP);
+        //LPCTSTR szText = _T("This is the simple shell extension's help");
 
         if ( uFlags & GCS_UNICODE )
         {
             // We need to cast pszName to a Unicode string, and then use the
             // Unicode string copy API.
-            lstrcpynW ( (LPWSTR) pszName, T2CW(szText), cchMax );
+            lstrcpynW ( (LPWSTR) pszName, T2CW(strHelp), cchMax );
         }
         else
         {
             // Use the ANSI string copy API to return the help string.
-            lstrcpynA ( pszName, T2CA(szText), cchMax );
+            lstrcpynA ( pszName, T2CA(strHelp), cchMax );
         }
 
         return S_OK;
     }
 
     return E_INVALIDARG;
-}
-
-void TestGetShellObject()
-{
-    IShellWindows *psw = NULL;  
-    HRESULT hr = ::CoCreateInstance(CLSID_ShellWindows, NULL, CLSCTX_ALL, IID_IShellWindows, (void**)&psw);
-    if (SUCCEEDED(hr)) 
-    {
-        long lCount = 0;  
-        hr = psw->get_Count(&lCount);  
-
-        //SWC_EXPLORER 指出获取explorer打开的窗口，如果没有打开任何窗口则会调用失败  
-        //VISTA及以后的版本可以用SWC_DESKTOP，此时获取的是桌面窗口，即使没有其他shell窗口，该调用也不会失败.  
-        VARIANT vpidl;  
-        vpidl.vt = VT_UI4;  
-        vpidl.ulVal = SWC_EXPLORER;  
-        IDispatch *pdisp = NULL;  
-        hr = psw->Item(vpidl, &pdisp);  
-        if (hr == S_OK) 
-        {
-            IWebBrowserApp *pwba = NULL;  
-            hr = pdisp->QueryInterface(IID_IWebBrowserApp, (void**)&pwba);  
- 
-        }
-    
-        VARIANT v;
-        V_VT(&v) = VT_I4;
-        IDispatch  *pdisp1;
-        BOOL fFound = FALSE;
-        for (V_I4(&v) = 0; !fFound && psw->Item(v, &pdisp1) == S_OK; V_I4(&v)++) 
-        {
-            IWebBrowserApp *pwba;
-            if (SUCCEEDED(pdisp1->QueryInterface(IID_IWebBrowserApp, (void**)&pwba))) 
-            {
-            }
-            pdisp1->Release();
-        }
-    }
 }
 
 STDMETHODIMP CTabExplorerShlExt::InvokeCommand(LPCMINVOKECOMMANDINFO pCmdInfo)
@@ -140,11 +126,11 @@ STDMETHODIMP CTabExplorerShlExt::InvokeCommand(LPCMINVOKECOMMANDINFO pCmdInfo)
     {
         case 0:
         {
-            TCHAR szMsg [MAX_PATH + 32];
+            CAppConfig& cfg = AppGetConfig();
 
-            wsprintf ( szMsg, _T("The selected file was:\n\n%s"), m_szFile );
-            TestGetShellObject();
-            //MessageBox ( pCmdInfo->hwnd, szMsg, _T("SimpleShlExt"), MB_ICONINFORMATION );
+            CString cmdParam;
+            cmdParam.Format(_T(" /k cd /d %s"), m_szFile);
+            ::ShellExecute(NULL, _T("open"), cfg.GetCmdProgramPathName(), cmdParam, NULL, SW_SHOWNORMAL);
 
             return S_OK;
         }

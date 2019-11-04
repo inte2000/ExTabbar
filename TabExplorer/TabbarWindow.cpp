@@ -382,7 +382,7 @@ void CTabbarWindow::OnNavigateComplete(const TString& strUrl)
                 cidl.CreateByIdListData(std::get<0>(rawIdl), std::get<1>(rawIdl));
             }
             psti->NavigatedTo(IdlData, cidl, strUrl);
-            int iconIdx = GetShellObjectIcon(cidl);
+            int iconIdx = cidl.GetShellIcon();
             m_TabCtrl.SetItemInfo(nItem, iconIdx, psti->GetTitle().c_str(), psti->GetTooltip().c_str());
         }
         

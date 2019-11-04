@@ -30,7 +30,6 @@ bool CTeTabCtrl::PrepareDataObject(int nItem, const POINT& pt, IDataObject** ppD
     }
 
     pDropData->nDragItem = GetCurSel();
-    GetItemId(nItem, pDropData->DragItemId);
     pDropData->hSourceWnd = m_hWnd;
     CShellTabItem* pTabItem = (CShellTabItem*)GetItemData(pDropData->nDragItem);
     WStrFromTString(pDropData->wcUrl, MAX_PATH, pTabItem->GetUrl());
@@ -141,7 +140,7 @@ BOOL CTeTabCtrl::AddNewTab(const TString& path)
             nInsertItem = GetItemCount();
 
         psti->NavigatedTo(IdlData, cidl, path);
-        int iconIdx = GetShellObjectIcon(cidl);
+        int iconIdx = cidl.GetShellIcon();
 
         bool bSelected = g_bSwitchNewTab ? true : false;
         int index = InternalInsertItem(nInsertItem, psti->GetTitle().c_str(), iconIdx, psti->GetTooltip().c_str(), (ULONG_PTR)psti, bSelected);

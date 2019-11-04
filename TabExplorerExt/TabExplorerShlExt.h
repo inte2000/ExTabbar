@@ -18,7 +18,8 @@ class ATL_NO_VTABLE CTabExplorerShlExt :
     public IExtractIcon
 {
 public:
-    CTabExplorerShlExt() { }
+    CTabExplorerShlExt();
+    virtual ~CTabExplorerShlExt();
 
     DECLARE_REGISTRY_RESOURCEID(IDR_TABEXPLORERSHLEXT)
 
@@ -61,6 +62,7 @@ public:
 protected:
     TCHAR m_szFile [MAX_PATH];
     DWORDLONG m_qwFileSize; 
+    HBITMAP m_hCmdHereBmp;
 };
 
 #endif //__TABEXPLORERSHLEXT_H_

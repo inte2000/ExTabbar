@@ -13,13 +13,29 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// Chinese (Simplified, PRC) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_CMDHEREMENU         BITMAP                  "res\\cmdhere.bmp"
+
+#endif    // Chinese (Simplified, PRC) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -27,18 +43,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""winres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "\0"
 END
@@ -46,7 +62,6 @@ END
 #endif    // APSTUDIO_INVOKED
 
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
@@ -69,15 +84,13 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "TabExplorerExt Module\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "TabExplorerExt\0"
-            VALUE "LegalCopyright", "Copyright 2000\0"
-            VALUE "OriginalFilename", "TabExplorerExt.DLL\0"
-            VALUE "ProductName", "TabExplorerExt Module\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
-            VALUE "OLESelfRegister", "\0"
+            VALUE "FileDescription", "TabExplorerExt Module"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "TabExplorerExt"
+            VALUE "LegalCopyright", "Copyright 2000"
+            VALUE "OriginalFilename", "TabExplorerExt.DLL"
+            VALUE "ProductName", "TabExplorerExt Module"
+            VALUE "ProductVersion", "1, 0, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
@@ -85,8 +98,6 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
-
-#endif    // !_MAC
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -115,6 +126,8 @@ IDI_UNDER_8K            ICON    DISCARDABLE     "res\\under_8k.ico"
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PROJNAME            "TabExplorerExt"
+    IDS_MENUTEXT_CMDHERE    "Open Cmd Console Here"
+    IDS_CMDHERE_HELP        "ExTabbar open cmd console windows on here"
 END
 
 #endif    // English (U.S.) resources

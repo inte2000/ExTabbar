@@ -24,6 +24,9 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AppConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TabExplorerExt.def">
@@ -53,5 +56,25 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AppConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\zero_byt.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\over_8k.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\under_4k.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\under_8k.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\cmdhere.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

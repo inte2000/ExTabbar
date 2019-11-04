@@ -10,9 +10,9 @@
 #endif // _MSC_VER > 1000
 
 #define STRICT
-#define WINVER          0x0501
-#define _WIN32_WINNT    0x0501
-#define _WIN32_IE       0x0501
+#define WINVER          0x0600
+#define _WIN32_WINNT    0x0600
+#define _WIN32_IE       0x0600
 
 //#define WINVER _WINNT_WIN32_WIN7 // Minimum targeted Windows version is Windows 7
 
@@ -25,6 +25,21 @@
 extern CComModule _Module;
 #include <atlcom.h>
 #include <atlconv.h>
+//#include <atlctl.h>
+//#include <atlstr.h>
+//#include <atlcoll.h>
+
+//#define _WTL_NO_CSTRING 
+
+//using namespace ATL;
+
+#include <atlapp.h>
+//#include <atlctrls.h>
+//#include <atlctrlx.h>
+#include <atlmisc.h>
+#include <atlcrack.h>
+#include <atltheme.h>
+//#include <atlsplit.h>
 
 #include <shlobj.h>
 #include <comdef.h>
