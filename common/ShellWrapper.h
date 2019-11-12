@@ -7,7 +7,7 @@ class CEnumIDList
 {
 public:
     CEnumIDList() { m_Enum = nullptr; }
-    CEnumIDList(const IEnumIDList* peidlist, bool bAddRef = false) { Attach(peidlist, bAddRef); }
+    explicit CEnumIDList(const IEnumIDList* peidlist, bool bAddRef = false) { Attach(peidlist, bAddRef); }
     CEnumIDList(const CEnumIDList& ceidlist) { Attach(ceidlist.m_Enum, true); }
     CEnumIDList(CEnumIDList&& ceidlist) { m_Enum = ceidlist.m_Enum; ceidlist.m_Enum = nullptr; }
     virtual ~CEnumIDList() { Release(); }
