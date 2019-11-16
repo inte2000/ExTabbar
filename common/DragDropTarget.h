@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DataObjectWrapper.h"
 
 template<class T>
 class CDropTarget : public IDropTarget
@@ -20,9 +21,12 @@ public:
 
     bool RegisterDropTarget(HWND hWnd)
     {
-        CoCreateInstance(CLSID_DragDropHelper, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&m_pDropTargetHelper));
+        HRESULT hr = ::CoCreateInstance(CLSID_DragDropHelper, NULL, 
+                                        CLSCTX_INPROC, IID_PPV_ARGS(&m_pDropTargetHelper));
+        if (!SUCCEEDED(hr))
+            return false;
 
-        HRESULT hr = ::RegisterDragDrop(hWnd, this);
+        hr = ::RegisterDragDrop(hWnd, this);
         if (hr == S_OK)
         {
             m_hTargetWnd = hWnd;
@@ -39,6 +43,20 @@ public:
             ::RevokeDragDrop(m_hTargetWnd);
             m_hTargetWnd = NULL;
         }
+    }
+
+    DWORD OnTargetDragEnter(CDataObjectWrapper& DataObj, const POINT& pt, DWORD grfKeyState)
+    {
+        return DROPEFFECT_NONE;
+    }
+    void OnTargetDragLeave() {}
+    DWORD OnTargetDragOver(CDataObjectWrapper& DataObj, const POINT& pt, DWORD grfKeyState)
+    {
+        return DROPEFFECT_NONE;
+    }
+    DWORD OnTargetDropData(CDataObjectWrapper& DataObj, const POINT& pt, DWORD grfKeyState, DWORD dwEffect)
+    {
+        return DROPEFFECT_NONE;
     }
 
     //void SetSourceWnd(HWND hWnd) {}
@@ -84,27 +102,18 @@ public:
 
         ATLTRACE(_T("CDropTarget::DragEnter(DataObject=%p) m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d\n"),
             pDataObj, m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
+        m_DataObject.Release();
+        m_DataObject.Attach(pDataObj, true);
+        POINT ppt = { pt.x, pt.y };
+        ::ScreenToClient(m_hTargetWnd, &ppt);
+        DWORD dropEffect = pT->OnTargetDragEnter(m_DataObject, ppt, grfKeyState);
 
-        // does the dataobject contain data we want?
-        m_bAllowDrop = pT->IsDragAccepted(pDataObj);
-        if (m_bAllowDrop)
-        {
-            ATLTRACE(_T("CDropTarget::DragEnter(DataObject=%p) AllowDrop with m_hGropREgWnd=0x%x\n"),
-                                                               m_pDataObject, m_hTargetWnd);
-            m_pDataObject = pDataObj;
-            // get the dropeffect based on keyboard state
-            *pdwEffect = DropEffect(grfKeyState, pt, *pdwEffect);
-            pT->SetFocus();
-            pT->OnTargetDragEnter(pDataObj, &pt, grfKeyState);
-        }
-        else
-        {
-            *pdwEffect = DROPEFFECT_NONE;
-        }
+        // get the dropeffect based on keyboard state
+        *pdwEffect = DropEffect(dropEffect, *pdwEffect);
+        //pT->SetFocus();
 
         if (m_pDropTargetHelper != nullptr)
         {
-            POINT ppt = { pt.x, pt.y };
             m_pDropTargetHelper->DragEnter(m_hTargetWnd, pDataObj, &ppt, *pdwEffect);
         }
 
@@ -115,18 +124,16 @@ public:
     {
         T* pT = static_cast<T*>(this);
 
-        ATLTRACE(_T("CDropTarget::DragLeave(DataObject=%p) m_hGropREgWnd=0x%x\n"), m_pDataObject, m_hTargetWnd);
+        ATLTRACE(_T("CDropTarget::DragLeave() m_hGropREgWnd=0x%x\n"), m_hTargetWnd);
         
-        if (m_bAllowDrop)
-        {
-            pT->OnTargetDragLeave();
-            m_pDataObject = nullptr;
-        }
+        pT->OnTargetDragLeave();
 
         if (m_pDropTargetHelper != nullptr)
         {
             m_pDropTargetHelper->DragLeave();
         }
+        m_DataObject.Release();
+
         return S_OK;
     }
 
@@ -135,19 +142,13 @@ public:
         POINT ppt = { pt.x, pt.y };
         T* pT = static_cast<T*>(this);
 
-        ATLTRACE(_T("CDropTarget::DragOver(DataObject=%p) m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d\n"),
-            m_pDataObject, m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
+        ::ScreenToClient(m_hTargetWnd, &ppt);
+        ATLASSERT(!m_DataObject.IsEmpty());
+        ATLTRACE(_T("CDropTarget::DragOver() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d\n"),
+            m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
 
-        if (m_bAllowDrop)
-        {
-            *pdwEffect = DropEffect(grfKeyState, pt, *pdwEffect);
-            //PositionCursor(GetWnd(), pt);
-            pT->OnTargetDragOver(&ppt, grfKeyState);
-        }
-        else
-        {
-            *pdwEffect = DROPEFFECT_NONE;
-        }
+        DWORD dropEffect = pT->OnTargetDragOver(m_DataObject, ppt, grfKeyState);
+        *pdwEffect = DropEffect(dropEffect, *pdwEffect);
         if (m_pDropTargetHelper != nullptr)
         {
             m_pDropTargetHelper->DragOver(&ppt, *pdwEffect);
@@ -157,66 +158,75 @@ public:
 
     HRESULT STDMETHODCALLTYPE Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
     {
-        POINT ppt = { pt.x, pt.y };
-        //PositionCursor(GetWnd(), pt);
-        if (m_bAllowDrop)
-        {
-            T* pT = static_cast<T*>(this);
-            //pT->DropData(GetWnd(), pDataObj);
-            pT->OnTargetDropData(pDataObj, grfKeyState);
-            *pdwEffect = DropEffect(grfKeyState, pt, *pdwEffect);
+        T* pT = static_cast<T*>(this);
 
-        }
-        else
-        {
-            *pdwEffect = DROPEFFECT_NONE;
-        }
+        ATLASSERT(!m_DataObject.IsEmpty());
+
+        ATLTRACE(_T("CDropTarget::Drop() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d\n"),
+            m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
+        
+        POINT ppt = { pt.x, pt.y };
+        ::ScreenToClient(m_hTargetWnd, &ppt);
 
         if (m_pDropTargetHelper != nullptr)
         {
             m_pDropTargetHelper->Drop(pDataObj, &ppt, *pdwEffect);
         }
-        ATLTRACE(_T("CDropTarget::Drop() m_hGropREgWnd=0x%x, grfKeyState=%d, pt={%d, %d}, *pdwEffect=%d\n"),
-            m_hTargetWnd, grfKeyState, pt.x, pt.y, *pdwEffect);
+        
+        //PositionCursor(GetWnd(), pt);
+        DWORD dropEffect = DropEffect(pT->OnTargetDragOver(m_DataObject, ppt, grfKeyState), *pdwEffect);
+        if (dropEffect != DROPEFFECT_NONE)
+        {
+            pT->OnTargetDropData(m_DataObject, ppt, grfKeyState, dropEffect);
+        }
+        else
+        {
+            pT->OnTargetDragLeave();
+        }
+
+        *pdwEffect = dropEffect;
+        m_DataObject.Release();
+
         return S_OK;
     }
 
 protected:
-    DWORD DropEffect(DWORD grfKeyState, POINTL pt, DWORD dwAllowed)
+    DWORD DropEffect(DWORD dropEffect, DWORD dwEffects)
     {
-        DWORD dwEffect = 0;
+        // return allowed dropEffect and DROPEFFECT_NONE
+        if ((dropEffect & dwEffects) != 0)
+            return dropEffect;
 
-        // 1. check "pt" -> do we allow a drop at the specified coordinates?
-        T* pT = static_cast<T*>(this);
-        //if (!pT->CanFropHere(&pt))
-        //    return DROPEFFECT_NONE;
-
-        // 2. work out that the drop-effect should be based on grfKeyState
-        if (grfKeyState & MK_CONTROL)
+        // map common operations (copy/move) to alternates, but give negative
+        //  feedback for DROPEFFECT_LINK.
+        switch (dropEffect)
         {
-            dwEffect = dwAllowed & DROPEFFECT_COPY;
-        }
-        else if (grfKeyState & MK_SHIFT)
-        {
-            dwEffect = dwAllowed & DROPEFFECT_MOVE;
+        case DROPEFFECT_COPY:
+            if (dwEffects & DROPEFFECT_MOVE)
+                return DROPEFFECT_MOVE;
+            else if (dwEffects & DROPEFFECT_LINK)
+                return DROPEFFECT_LINK;
+            break;
+
+        case DROPEFFECT_MOVE:
+            if (dwEffects & DROPEFFECT_COPY)
+                return DROPEFFECT_COPY;
+            else if (dwEffects & DROPEFFECT_LINK)
+                return DROPEFFECT_LINK;
+            break;
+
+        case DROPEFFECT_LINK:
+            break;
         }
 
-        // 3. no key-modifiers were specified (or drop effect not allowed), so
-        //    base the effect on those allowed by the dropsource
-        if (dwEffect == 0)
-        {
-            if (dwAllowed & DROPEFFECT_COPY) dwEffect = DROPEFFECT_COPY;
-            if (dwAllowed & DROPEFFECT_MOVE) dwEffect = DROPEFFECT_MOVE;
-        }
-
-        return dwEffect;
+        return DROPEFFECT_NONE;
     }
 
 protected:
     HWND m_hTargetWnd;
     LONG m_lRefCount;
     bool m_bAllowDrop;
-    IDataObject* m_pDataObject;
+    CDataObjectWrapper m_DataObject;
     IDropTargetHelper* m_pDropTargetHelper;
 };
 
