@@ -1,0 +1,19 @@
+#pragma once
+
+//typedef for public message
+typedef struct tagItemPidlParam
+{
+    LPSHELLFOLDER lpsfParent;
+    LPITEMIDLIST  lParentPidl;
+    LPITEMIDLIST  lPidl;
+}ITEM_PIDL_PARAM, *LPITEM_PIDL_PARAM;
+
+// message id for TeExplorerWindow
+#define WM_TETL_TREEITEM_CHANGED    WM_APP+2001
+#define WM_TETL_LISTITEM_CHANGED    WM_APP+2002
+#define WM_TETL_LISTITEM_DBCLICK    WM_APP+2003
+#define WM_TELIST_SHELLOP_DELETE    WM_APP+2004
+#define WM_TETL_LISTITEM_SELCHANGED    WM_APP+2005
+#define WM_TETL_SET_STATUS_FILENAME    WM_APP+2006
+#define WM_TETL_SET_STATUS_FOCUS    WM_APP+2007
+#define WM_TETL_TREELIST_ACTIVED    WM_APP+2008

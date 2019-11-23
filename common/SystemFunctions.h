@@ -65,3 +65,4 @@ HGLOBAL CopyGlobalMemoryHandle(HGLOBAL hDest, HGLOBAL hSource);
 HBITMAP GetWindowSnapBitmap(HWND hWnd, SIZE* size = nullptr);
 void DoProcessEvent(HWND hWnd = NULL);
 BOOL BringWindowForeground(HWND hWnd);
+int CalcIconSizeByDpi(BOOL bUsingLargeIcon);

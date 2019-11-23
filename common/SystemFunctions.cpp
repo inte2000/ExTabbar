@@ -497,6 +497,21 @@ BOOL BringWindowForeground(HWND hWnd)
     return TRUE;
 }
 
+
+int CalcIconSizeByDpi(BOOL bUsingLargeIcon)
+{
+    int iconSize = 0;
+
+    HDC hdc = ::GetDC(NULL);
+    int dpi = ::GetDeviceCaps(hdc, LOGPIXELSY);
+    ::ReleaseDC(NULL, hdc);
+    if (dpi >= 120)
+        iconSize = bUsingLargeIcon ? 32 : 24;
+    else
+        iconSize = bUsingLargeIcon ? 24 : 16;
+
+    return iconSize;
+}
 /*
 ±£´æµ½¼ôÌù°å£º
 HRESULT OleSetClipboard(LPDATAOBJECT pDataObj);

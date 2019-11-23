@@ -32,3 +32,6 @@ extern BOOL g_bSwitchNewTab; //立即切换到新打开的tab标签
 extern BOOL g_bNewTabInsertBegin; //新标签插入在所有标签最前面
 
 extern int g_nDragImageTransparent;
+
+extern ATL::CString g_strShellNewMenuText;
+extern COLORREF g_TeStatusBkColor;

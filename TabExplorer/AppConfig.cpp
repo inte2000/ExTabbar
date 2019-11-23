@@ -34,3 +34,6 @@ BOOL g_bSwitchNewTab = TRUE; //立即切换到新打开的tab标签
 BOOL g_bNewTabInsertBegin = FALSE; //新标签插入在所有标签最前面
 
 int g_nDragImageTransparent = 200;
+
+ATL::CString g_strShellNewMenuText = _T("新建");
+COLORREF g_TeStatusBkColor = RGB(200, 191, 231);
